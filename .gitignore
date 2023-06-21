@@ -1,0 +1,6 @@
+env/*
+data/*
+results/*
+_pycache_
+.DS_Store
+.idea

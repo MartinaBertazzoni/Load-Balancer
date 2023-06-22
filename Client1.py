@@ -12,13 +12,9 @@ def stabilisco_connessione(server_address, server_port):
     """
     Questa funzione crea una client socket e stabilisce una connessione con il server indicato dall'address
     e dalla porta in input
-
     Args:
         server_address: string
         server_port: int
-
-    Returns:
-
     """
     try:
         #creo una socket client
@@ -31,12 +27,35 @@ def stabilisco_connessione(server_address, server_port):
         print(f"Errore durante la connessione al server: {socket.error}")
         sys.exit(1)
 
-
 #comunico con il server
-def comunicazione():
-    #invio dati: funzione send
-    #ricevo dati: funzione recv
-    pass
+def comunico_con_il_server(client_socket):
+    try:
+        while True:
+            #Ottengo l'input dall'utente
+            comando = input(" Digita il comando:  ")
+            # se il comando è ESC, chiudo la connessione con il server
+            if comando == 'ESC':
+                print("Chiusura della connessione con il server...")
+                #chiudo la client socket
+                client_socket.close()
+                sys.exit(0)
+
+                # Invia il comando al server
+                client_socket.send(comando.encode())
+
+                # Riceve la risposta dal server
+                data = client_socket.recv(4096)
+
+                if not data:
+                    print("Connessione con il server terminata.")
+                    break
+
+                # Elabora la risposta ricevuta
+                print("Risposta dal server:", data.decode())
+
+    except socket.error as error:
+        print(f"Errore di comunicazione con il server: {error}")
+        sys.exit(1)
 
 def elabora_dati():
     #elaboro i dati ricevuti dal server
@@ -58,4 +77,5 @@ if __name__ == "__main__":
 
     # Stabilisce la connessione con il server
     client_socket = stabilisco_connessione(server_address, server_port)
+    comunico_con_il_server(client_socket)
 

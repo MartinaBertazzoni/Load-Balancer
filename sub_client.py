@@ -2,6 +2,9 @@
 import socket
 import sys
 
+
+
+
 def invia_comandi(s):
     while True:
         comando = input("->")
@@ -26,4 +29,4 @@ def conn_sub_server(indirizzo_server):
     invia_comandi(s)
 
 if __name__ == "__main__":
-    conn_sub_server(("127.0.0.1", 15000))
+    conn_sub_server(("192.168.64.1", 15000))

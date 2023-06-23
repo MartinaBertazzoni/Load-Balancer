@@ -3,8 +3,6 @@ import socket
 import sys
 
 
-
-
 def invia_comandi(s):
     while True:
         comando = input("->")

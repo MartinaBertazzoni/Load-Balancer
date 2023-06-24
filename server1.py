@@ -8,7 +8,7 @@ import threading
 def gestisci_connessione(client_socket, client_address):
     """
     # Logica per gestire la connessione dal load balancer
-    # Implementa qui la logica per ricevere e gestire le richieste
+    # N.B. Implementa qui la logica per ricevere e gestire le richieste
     # inviate dal load balancer al server
 
     Parameters

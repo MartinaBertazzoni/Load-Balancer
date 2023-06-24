@@ -33,8 +33,6 @@ def comunico_con_il_server(client_socket):
                 if not data:
                     print("Connessione con il server terminata.")
                     break
-                # Elabora la risposta ricevuta
-                print("Risposta dal server:", data.decode())
     except socket.error as error:
         print(f"Errore di comunicazione con il server: {error}")
         sys.exit(1)

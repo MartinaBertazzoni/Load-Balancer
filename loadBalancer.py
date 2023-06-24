@@ -76,6 +76,10 @@ class LoadBalancer(object):
             client_thread = threading.Thread(target=self.gestione_comunicazione_client, args=(client_socket,))
             client_thread.start()
         self.gestione_comunicazione_client(client_socket)
+        
+        
+    def attiva_server():
+        pass 
 
 
 if __name__ =='__main__':

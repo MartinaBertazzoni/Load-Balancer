@@ -6,8 +6,10 @@ Un thread mi gestisce l'interfaccia, in particolare comandi di STOP e numero di 
 Un thread gestisce tutti gli altri processi
 
 """
+import sys
+import socket 
 
-def interfaccia_col_client():
+def interfaccia_col_client(client_socket):
     """
     Funzione che richiede comandi di input
 
@@ -16,7 +18,65 @@ def interfaccia_col_client():
     None.
 
     """
+    try:
+        while True:
+            comando = input(" Digita il comando:  ")
+            # se il comando è ESC, chiudo la connessione con il server
+            if comando == 'ESC':
+                print("Chiusura della connessione con il server...")
+                #chiudo la client socket
+                client_socket.close()
+                sys.exit(0)
+            else:
+                # Invia il comando al server (richiamo alla funzione)
+                data = invia_richieste_al_loadbalancer(comando, client_socket)
+                print(str(data, "utf-8"))
+    except socket.error as error:
+        print(f"Errore di comunicazione con il server: {error}")
+        sys.exit(1)
+        
+    
+def invia_richieste_al_loadbalancer(comando, client_socket):
+    """
+    Funzione che invia i comandi al loadBalancer (connessione TCP e socket) e riceve le risposte del loadBalancer
 
+    Returns
+    -------
+    None.
+
+    """
+    while True:
+        # il client invia il comando di input al loadBalancer
+        client_socket.send(comando.encode())
+        # Riceve la risposta dal server
+        data = client_socket.recv(4096)
+        if not data:
+            print("Connessione con il server terminata.")
+            break
+    return data
+
+def connetti_al_loadbalancer(loadBalancer_ip, loadBalancer_port, client_ip, client_port):
+    """
+    Funzione che crea la connessione con il load balancer (possiamo utilizzare connect oppure setsocketopt e bind)
+
+    Returns
+    -------
+    None.
+
+    """
+    try:
+        #creo una socket client
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
+        # connetto il client con il loadBalancer
+        client_socket.connect((loadBalancer_ip, loadBalancer_port))
+        print(f"Connessione al server {loadBalancer_ip}:{loadBalancer_port} stabilita.")
+        return client_socket
+    except:
+        print(f"Errore durante la connessione al server: {socket.error}")
+        sys.exit(1)
+    
+    
 def gestisci_richieste():
     """
     Funzione target del processo 2: crea le richieste, invia richieste, riceve richieste e le printa su terminale.
@@ -28,17 +88,7 @@ def gestisci_richieste():
     -------
     None.
 
-    """
-    
-def invia_richieste_al_loadbalancer():
-    """
-    Funzione che invia i comandi al server (connessione TCP e socket)
-
-    Returns
-    -------
-    None.
-
-    """
+    """    
 def crea_richieste_random():
     """
     Funzione che crea richieste di carico random e durata random 
@@ -49,15 +99,7 @@ def crea_richieste_random():
 
     """
 
-def connetti_al_loadbalancer():
-    """
-    Funzione che crea la connessione con il load balancer (possiamo utilizzare connect oppure setsocketopt e bind)
-
-    Returns
-    -------
-    None.
-
-    """
+    
 def sconnetti_dal_load_balancer():
     """
     Funzione che chiude la connessione fra client e load balancer
@@ -79,7 +121,7 @@ def chiusura_richiesta():
     """
 
 
-if __name__ == "__client2__":
+if __name__ == "__main__":
     
     # creazione della variabile globale (deve essere una lista che contiene comandi di input
     # e deve essere inizializzata anche nelle funzioni: da verificare)
@@ -90,11 +132,14 @@ if __name__ == "__client2__":
     
     #Avvio con start e chiudo con join i processi
     
-    
-    
-    
-    
-    pass
+    loadBalancer_ip= "192.168.64.1"  # Indirizzo IP del server di load balancing
+    loadBalancer_port = 8888  # Porta del server
+    client_ip = "192.167.65.2"
+    client_port = 65000
+
+    # Stabilisce la connessione con il server
+    client_socket = connetti_al_loadbalancer(loadBalancer_ip, loadBalancer_port, client_ip, client_port)
+    interfaccia_col_client(client_socket)
     
     
 

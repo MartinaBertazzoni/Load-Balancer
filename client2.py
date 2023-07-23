@@ -8,6 +8,7 @@ Un thread gestisce tutti gli altri processi
 """
 import sys
 import socket 
+import random
 
 def interfaccia_col_client(client_socket):
     """
@@ -92,13 +93,37 @@ def gestisci_richieste():
     """    
 def crea_richieste_random():
     """
-    Funzione che crea richieste di carico random e durata random 
+    Funzione che crea richieste/comandi, di carico e durata random. 
+    Ad esempio, possiamo creare comandi random di calcolo; il comando scelto randomicamente verrà quindi
+    inviato al loadBalancer, che a sua volta lo inoltrerà ad un server
 
     Returns
     -------
     None.
 
     """
+    #selezione dei valori di carico e durata random
+    carico=random.randint(1,50)
+    durata=random.randint(1, 50)
+    #creo due valori random A e B che servono per i calcoli
+    A=random.randint(1,50)
+    B=random.randint(1,50)
+    #creo un dizionario di possibili richieste
+    richieste={
+        "somma": A+B,
+        "sottrazione":A-B,
+        "moltiplicazione": A*B,
+        "divisione":A/B }
+    #seleziono un comando in maniera casuale fra quelli presenti nel dizionario
+    comando_casuale= random.choice(list(richieste.keys()))
+    #creo il dizionario comando: ad ogni richiesta, associo un valore di carico e di durata, oltre che la richiesta
+    #scelta in maniera randomica
+    comando = {
+    "carico": carico,
+    "durata": durata, 
+    "richiesta": comando_casuale }
+    print(comando)
+    return comando
 
     
 def sconnetti_dal_load_balancer():
@@ -139,6 +164,7 @@ if __name__ == "__main__":
 
     client_socket = connetti_al_loadbalancer(loadBalancer_ip, loadBalancer_port)
     interfaccia_col_client(client_socket)
+    crea_richieste_random()
     
     
 

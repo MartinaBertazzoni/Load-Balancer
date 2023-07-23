@@ -29,8 +29,7 @@ def interfaccia_col_client(client_socket):
                 sys.exit(0)
             else:
                 # Invia il comando al server (richiamo alla funzione)
-                invia_richieste_al_loadbalancer(comando, client_socket)
-                
+                invia_richieste_al_loadbalancer(comando, client_socket)    
     except socket.error as error:
         print(f"Errore di comunicazione con il server: {error}")
         sys.exit(1)

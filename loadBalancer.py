@@ -6,50 +6,19 @@ import threading
 import socket
 
 
-def least_connection():
+def round_robin_method():
     pass
 
-class Server:
-    def __init__(self, server_socket):
-        self.server_socket = server_socket
-        self.request_counter = 0
+
 
 class LoadBalancer(object):
 
     
     def __init__(self):
         
-        #indirizzo ip e porta dei server di backend
-        
-        #Dizionario che mappa i collegamenti client - server
-        self.dizionario={}
-        
         #porta in cui si mette in ascolto il server
         self.port=8888
-        #lista dei server attivi
-        self.servers=[]
-        
 
-    def create_server(self, server_address=None):
-        # se è il primo server che creo
-        if len(self.servers)==0:
-            server_address = ("127.0.0.1", 8888)
-            # lo aggiungo alla lista dei server
-            self.servers.append(server_address)
-        else:
-            #QUI DEVO AGGIUNGERE LA CONDIZIONE 
-            # altrimenti, creo un nuovo server address
-            last_server_address = self.servers[-1]
-            server_address = (last_server_address[0], last_server_address[1]+1)
-            self.servers.append(server_address)
-            print("La lista dei server attivi al momento è: ", self.servers)
-        #Creo la socket del server
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.bind(server_address)
-        server_socket.listen(10)
-        print(f" Creo un nuovo server all'indirizzo: {server_address}")
-        
-        
 
     def gestione_comunicazione_client(self,client_socket):
         """
@@ -63,9 +32,6 @@ class LoadBalancer(object):
             # Elabora la richiesta del client
             risposta = " Il server di load balancer ha ricevuto il comando e lo inoltra ad un server"
             client_socket.send(risposta.encode())
-            # creo un nuovo server e lo aggiungo alla lista dei server
-            self.create_server()
-            
         client_socket.close()
         
 
@@ -75,6 +41,7 @@ class LoadBalancer(object):
         port=self.port
         # Creazione della socket del server
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server_socket.bind((host, port))
         #10 è il backlog, ovvero il numero massimo di richieste che possono essere in attesa
         server_socket.listen(10)
@@ -96,7 +63,7 @@ class LoadBalancer(object):
 if __name__ =='__main__':
     load_balancer=LoadBalancer()
     load_balancer.creazione_socket_server()
-    load_balancer.create_server()
+    
 
 
     # def accetto_connessioni(self):

@@ -29,8 +29,8 @@ def interfaccia_col_client(client_socket):
                 sys.exit(0)
             else:
                 # Invia il comando al server (richiamo alla funzione)
-                data = invia_richieste_al_loadbalancer(comando, client_socket)
-                print(str(data, "utf-8"))
+                invia_richieste_al_loadbalancer(comando, client_socket)
+                
     except socket.error as error:
         print(f"Errore di comunicazione con il server: {error}")
         sys.exit(1)
@@ -45,17 +45,19 @@ def invia_richieste_al_loadbalancer(comando, client_socket):
     None.
 
     """
-    while True:
-        # il client invia il comando di input al loadBalancer
-        client_socket.send(comando.encode())
-        # Riceve la risposta dal server
-        data = client_socket.recv(4096)
-        if not data:
-            print("Connessione con il server terminata.")
-            break
-    return data
+    
+    # il client invia il comando di input al loadBalancer
+    client_socket.send(comando.encode())
+    # Riceve la risposta dal server
+    data = client_socket.recv(4096)
+    print(str(data, "utf-8"))
+    if not data:
+        print("Connessione con il server terminata.")
+            
+    
+    
 
-def connetti_al_loadbalancer(loadBalancer_ip, loadBalancer_port, client_ip, client_port):
+def connetti_al_loadbalancer(loadBalancer_ip, loadBalancer_port):
     """
     Funzione che crea la connessione con il load balancer (possiamo utilizzare connect oppure setsocketopt e bind)
 
@@ -67,7 +69,7 @@ def connetti_al_loadbalancer(loadBalancer_ip, loadBalancer_port, client_ip, clie
     try:
         #creo una socket client
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
+        client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # connetto il client con il loadBalancer
         client_socket.connect((loadBalancer_ip, loadBalancer_port))
         print(f"Connessione al server {loadBalancer_ip}:{loadBalancer_port} stabilita.")
@@ -134,11 +136,9 @@ if __name__ == "__main__":
     
     loadBalancer_ip= "192.168.64.1"  # Indirizzo IP del server di load balancing
     loadBalancer_port = 8888  # Porta del server
-    client_ip = "192.167.65.2"
-    client_port = 65000
+   
 
-    # Stabilisce la connessione con il server
-    client_socket = connetti_al_loadbalancer(loadBalancer_ip, loadBalancer_port, client_ip, client_port)
+    client_socket = connetti_al_loadbalancer(loadBalancer_ip, loadBalancer_port)
     interfaccia_col_client(client_socket)
     
     

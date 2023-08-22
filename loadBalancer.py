@@ -18,13 +18,14 @@ class LoadBalancer(object):
         """
         Costruttore della classe loadBalancer
         """
-        #porta in cui si mette in ascolto il server
+        # porta in cui si mette in ascolto il server
+        self.port = 8888
         self.ip = '0.0.0.0'
         self.clients = []
-        self.richieste = {}#la chiave è ip del client argomento nome richieste
+        self.active_clients = []
+        self.richieste = {}  # la chiave è ip del client, argomento nome richieste
         self.servers = []
         self.port_server = []
-        self.port=8888
 
     def avvio_loadbalancer(self):
         """
@@ -44,7 +45,7 @@ class LoadBalancer(object):
 
         while True:
             # il loadBalancer riceve i dati dal client
-            data=client_socket.recv(4096)
+            data = client_socket.recv(4096)
             if not data:
                 break
             # Elabora la richiesta del client
@@ -66,20 +67,19 @@ class LoadBalancer(object):
         -------
         None.
         """
-        #host= "" #il server è in ascolto su tutte le interfacce disponibili dell'host
-        #port=self.port
-        
+
         # Creazione della socket del server
         balancer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #balancer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Binding della socket all'host e alla porta
         balancer_socket.bind((self.ip, self.port))
-        
-        #10 è il backlog, ovvero il numero massimo di richieste che possono essere in attesa
-        balancer_socket.listen(10)
+        # 10 è il backlog, ovvero il numero massimo di richieste che possono essere in attesa
+        # balancer_socket.listen(10)
         print("Server di load balancing in ascolto su {}:{}".format(self.ip, self.port))
 
         while True:
+            # Accetta le connessioni in entrata
             client_socket, client_ip = balancer_socket.accept()
+            # Commento di riuscita connessione con il client
             print("Connessione accettata da {}:{}".format(client_ip[0], client_ip[1]))
             # Avvia un thread separato per gestire il client
             client_thread = threading.Thread(target=self.gestione_comunicazione_client, args=(client_socket,))

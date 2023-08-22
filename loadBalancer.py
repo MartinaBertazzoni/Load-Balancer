@@ -19,11 +19,11 @@ class LoadBalancer(object):
         Costruttore della classe loadBalancer
         """
         #porta in cui si mette in ascolto il server
-        self.ip='0.0.0.0'
-        self.clients=[]
-        self.richieste={}#la chiave è ip del client argomento nome richieste
-        self.servers=[]
-        self.port_server=[]
+        self.ip = '0.0.0.0'
+        self.clients = []
+        self.richieste = {}#la chiave è ip del client argomento nome richieste
+        self.servers = []
+        self.port_server = []
         self.port=8888
 
     def avvio_loadbalancer(self):

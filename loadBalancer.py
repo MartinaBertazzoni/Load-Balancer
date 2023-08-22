@@ -19,9 +19,19 @@ class LoadBalancer(object):
         Costruttore della classe loadBalancer
         """
         #porta in cui si mette in ascolto il server
+        self.ip='0.0.0.0'
+        self.clients=[]
+        self.richieste={}#la chiave è ip del client argomento nome richieste
+        self.servers=[]
+        self.port_server=[]
         self.port=8888
 
-
+    def avvio_loadbalancer(self):
+        """
+        funzione che aavvia i metodi del loadbalancer, nel caso apre e chiude thread per gestire comunicazioni con client
+        e server
+        """
+        pass
     def gestione_comunicazione_client(self,client_socket):
         """
         Funzione che gestisce la comunicazione con il client:
@@ -31,6 +41,7 @@ class LoadBalancer(object):
         -------
         None.
         """
+
         while True:
             # il loadBalancer riceve i dati dal client
             data=client_socket.recv(4096)
@@ -47,34 +58,46 @@ class LoadBalancer(object):
 
     def creazione_socket_loadBalancer(self):
         """
-        Funzione che crea la socket TCP del loadBalancer per connetterlo all'host
+        Funzione che crea la socket TCP del loadBalancer per connetterlo all'host ed ai server
+        
+        (da modificare)
         
         Returns
         -------
         None.
         """
-        host= "" #il server è in ascolto su tutte le interfacce disponibili dell'host
-        port=self.port
+        #host= "" #il server è in ascolto su tutte le interfacce disponibili dell'host
+        #port=self.port
         
         # Creazione della socket del server
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server_socket.bind((host, port))
+        balancer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #balancer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        balancer_socket.bind((self.ip, self.port))
         
         #10 è il backlog, ovvero il numero massimo di richieste che possono essere in attesa
-        server_socket.listen(10)
-        print("Server di load balancing in ascolto su {}:{}".format(host, port))
+        balancer_socket.listen(10)
+        print("Server di load balancing in ascolto su {}:{}".format(self.ip, self.port))
 
         while True:
-            client_socket, client_ip = server_socket.accept()
+            client_socket, client_ip = balancer_socket.accept()
             print("Connessione accettata da {}:{}".format(client_ip[0], client_ip[1]))
             # Avvia un thread separato per gestire il client
             client_thread = threading.Thread(target=self.gestione_comunicazione_client, args=(client_socket,))
             client_thread.start()
         self.gestione_comunicazione_client(client_socket)
         
+    def monitoraggio_server(self):
+        """
+        metodo o insieme di metodi che ricevono e salvano le informazioni dello status (numero di richieste,
+        operativo o non operativo, carico computazionale solo se troviamo funzioni che ci consentono di osservarlo )di ogni sever  in tempi regolari
+        """ 
+        pass
+    def gestione_comunicazione_server(self):
+        """
+        funzione che invia e distribuisce le richieste(tramite la funzione di algortimo nel nostro caso il round robin).
+        manda il segnale di chiusura della richiesta, reinvia il risulatato della richiesta
         
-
+        """
 
 if __name__ =='__main__':
     

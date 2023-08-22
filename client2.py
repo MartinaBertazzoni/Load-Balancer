@@ -147,6 +147,7 @@ def chiusura_richiesta():
     """
 
 
+
 if __name__ == "__main__":
     
     # creazione della variabile globale (deve essere una lista che contiene comandi di input

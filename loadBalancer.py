@@ -65,7 +65,7 @@ class LoadBalancer(object):
                 # il loadBalancer risponde al client per l'avvenuta connessione
                 client_socket.send(risposta.encode())
                 # DEVO CHIAMARE LA FUNZIONE CHE INOLTRA LA RICHIESTA AD UN SERVER CON MECCANISMO ROUND ROBIN
-                #self.route_message(client_socket, data)
+                self.route_message(client_socket, data)
         client_socket.close()
 
     def route_message(self, client_socket, data):
@@ -126,7 +126,7 @@ class LoadBalancer(object):
             if client_socket not in self.clients:
                 print(self.clients)
                 client_thread.join()
-        self.gestione_comunicazione_client(client_socket)
+        #self.gestione_comunicazione_client(client_socket)
 
     def monitoraggio_server(self):
         """

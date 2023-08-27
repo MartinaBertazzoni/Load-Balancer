@@ -62,7 +62,6 @@ def start_server(host, port):
         connection_thread = threading.Thread(target=gestisci_connessione, args=(client_socket, client_address))
         connection_thread.start()
 
-
 host ="192.168.64.1"
 port = 8888
 

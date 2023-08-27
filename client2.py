@@ -159,8 +159,8 @@ if __name__ == "__main__":
     
     #Avvio con start e chiudo con join i processi
     
-    loadBalancer_ip= "192.168.64.1"  # Indirizzo IP del server di load balancing
-    loadBalancer_port = 8888  # Porta del server
+    loadBalancer_ip= "127.0.0.1"  # Indirizzo IP del server di load balancing
+    loadBalancer_port = 5001  # Porta del server
    
 
     client_socket = connetti_al_loadbalancer(loadBalancer_ip, loadBalancer_port)

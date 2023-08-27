@@ -18,6 +18,7 @@ class LoadBalancer(object):
         """
         # porta in cui si mette in ascolto il server
         self.port = 5001
+        # ip dell'host
         self.ip = '127.0.0.1'
         self.clients = []
         self.active_clients = []
@@ -49,6 +50,8 @@ class LoadBalancer(object):
             data = client_socket.recv(4096)
             message = data.decode("utf-8")
             print()
+            if not data:
+                break
             if message.strip() == "exit":
                 print("SONO ENTRATO IN EXIT")
                 exit_response = "Disconnessione avvenuta con successo"
@@ -62,7 +65,7 @@ class LoadBalancer(object):
                 # il loadBalancer risponde al client per l'avvenuta connessione
                 client_socket.send(risposta.encode())
                 # DEVO CHIAMARE LA FUNZIONE CHE INOLTRA LA RICHIESTA AD UN SERVER CON MECCANISMO ROUND ROBIN
-                self.route_message(client_socket, data)
+                #self.route_message(client_socket, data)
         client_socket.close()
 
     def route_message(self, client_socket, data):
@@ -92,13 +95,14 @@ class LoadBalancer(object):
         None.
         """
 
-        # Creazione della socket del server
+        # Creazione della socket del server di load balancer
         balancer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        
         # Binding della socket all'host e alla porta
         balancer_socket.bind((self.ip, self.port))
-        balancer_socket.listen()
         # 10 è il backlog, ovvero il numero massimo di richieste che possono essere in attesa
         # balancer_socket.listen(10)
+        balancer_socket.listen(10)
         print("Server di load balancing in ascolto su {}:{}".format(self.ip, self.port))
 
         while True:
@@ -108,8 +112,10 @@ class LoadBalancer(object):
             self.clients.append(client_socket)
             # Commento di riuscita connessione con il client
             print("Connessione accettata da {}:{}".format(client_ip[0], client_ip[1]))
+            
             client_socket.send('alias?'.encode("utf-8"))
             alias = client_socket.recv(1024)
+            
             # clients.append(client)
             # print(clients)
             client_socket.send("ora sei connesso!".encode("utf-8"))
@@ -120,7 +126,7 @@ class LoadBalancer(object):
             if client_socket not in self.clients:
                 print(self.clients)
                 client_thread.join()
-        # self.gestione_comunicazione_client(client_socket)
+        self.gestione_comunicazione_client(client_socket)
 
     def monitoraggio_server(self):
         """

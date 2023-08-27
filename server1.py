@@ -51,7 +51,7 @@ def start_server(host, port):
     # Collego la socket del server all'IP e alla porta dell'host (quindi del Load Balancer)
     server_socket.bind((host, port))
     # Il server è in ascolto; può avere massimo 10 richieste in attesa
-    server_socket.listen(10)
+    server_socket.listen()
     print(f"Server in ascolto su {host}:{port}")
 
     while True:

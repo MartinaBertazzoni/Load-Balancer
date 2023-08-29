@@ -1,115 +1,179 @@
 import sys
 import socket
 import random
+import threading
+
+#creata la classe client per far accedere i thread agli attributi
+class client(object):
+
+    def __init__(self):
+        """
+        Costruttore della classe client
+        """
+        #stack dove vengono inseriti i comandi svolgere
+        self.comandi=[]
+        #variabile che conta il numero richieste inviate e che devono ricevere risposta
+        self.counter_richieste=0
+        #flag che mi dice se chiudere il socket
+        self.chiusura=False
+    
+    def avvio_client(self):
+        """
+        Funzione che avvia e chiude tre thread:
+        1.interfaccia che prende da input i comandi e li inserisce nella lista self.comandi
+        2.thread che invia i comandi al load balancer
+        3.thread che rimane in ascolto per ricevere le risposte delle richieste inviate
+        """
+        client_socket = self.connessione_al_loadbalancer()
+        interfaccia=threading.Thread(target=self.interfaccia_client)
+        invio_richieste=threading.Thread(target=self.invia_richieste_al_loadbalancer, args=(client_socket,))
+        ricevi_risposte=threading.Thread(target=self.ricezione_risposta, args=(client_socket,))
+        interfaccia.start();invio_richieste.start();ricevi_risposte.start()
+        interfaccia.join();invio_richieste.join();ricevi_risposte.join()
 
 
-def connessione_al_loadbalancer():
-    # impostazione dell'ip del loadBalancer
-    loadBalancer_ip = "127.0.0.1"
-    # impostazione della porta dove è in ascolto il loadBalancer
-    loadBalancer_port = "5001"
+        
+    def connessione_al_loadbalancer(self):
+        """
+        Funzione che collega il client al loadbalancer attraverso il socket.
+        """
+        # impostazione dell'ip del loadBalancer
+        loadBalancer_ip = "127.0.0.1"
+        # impostazione della porta dove è in ascolto il loadBalancer
+        loadBalancer_port = "5001"
 
-    try:
-        # creo una socket client
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        print(client_socket)
-        print(loadBalancer_ip)
-        # client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # connetto il client con il loadBalancer
-        # client_socket.connect((loadBalancer_ip, loadBalancer_port))
-        client_socket.connect(("127.0.0.1", 5001))
+        try:
+            # creo una socket client
+            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            print(client_socket)
+            print(loadBalancer_ip)
+            # client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            # connetto il client con il loadBalancer
+            # client_socket.connect((loadBalancer_ip, loadBalancer_port))
+            client_socket.connect(("127.0.0.1", 5001))
 
-        print(f"Connessione al server {loadBalancer_ip}:{loadBalancer_port} stabilita.")
-        # DEVO RICHIAMARE COME FUNZIONE L'INTERFACCIA_CON_LOADBALANCER()
-        interfaccia_con_loadbalancer(client_socket)
-        # return client_socket
-    except:
-        print(f"Errore durante la connessione al server: {socket.error}")
-        print("Sto uscendo...")
-        sys.exit(1)
+            print(f"Connessione al server {loadBalancer_ip}:{loadBalancer_port} stabilita.")
+            # DEVO RICHIAMARE COME FUNZIONE L'INTERFACCIA_CON_LOADBALANCER()
+            #interfaccia_con_loadbalancer(client_socket)
+            # return client_socket
+            return client_socket
+        except:
+            print(f"Errore durante la connessione al server: {socket.error}")
+            print("Sto uscendo...")
+            sys.exit(1)
 
-
-def interfaccia_con_loadbalancer(client_socket):
-    try:
+    def interfaccia_client(self):
+        """
+        Funzione che simula una interfaccia che richiede i comandi da svolgere
+        """
         while True:
-            # ricezione_risposta(client_socket)
-            # QUI DOVRO' POI SOSTIUIRE CON COMANDO = CREA_COMANDO_RANDOM()
+            #richiede il comando da terminale 
             comando = input(" Digita il comando:  ")
-            # se il comando è ESC, chiudo la connessione con il server
-            if comando == 'ESC':
+            #inserisco il comando dentro la lista dei comandi da svolgere
+            self.comandi.append(comando)
+            if comando == 'exit':
                 print("Chiusura della connessione con il server...")
-                # chiudo la client socket
-                client_socket.close()
-                sys.exit(0)
-            else:
-                # Invia il comando al server (richiamo alla funzione)
-                invia_richieste_al_loadbalancer(comando, client_socket)
-                ricezione_risposta(client_socket)
-    except socket.error as error:
-        print(f"Errore di comunicazione con il server: {error}")
-        sys.exit(1)
+                break
+            
 
 
-def invia_richieste_al_loadbalancer(comando, client_socket):
-    """
-    Funzione che invia i comandi al loadBalancer (connessione TCP e socket) e riceve le risposte del loadBalancer
 
-    Returns
-    -------
-    None.
+    def invia_richieste_al_loadbalancer(self, client_socket):
+        """
+        Funzione che invia i comandi al loadBalancer (connessione TCP e socket) e riceve le risposte del loadBalancer
 
-    """
+        Returns
+        -------
+        None.
 
-    # il client invia il comando di input al loadBalancer
-    client_socket.send(comando.encode())
-    # Riceve la risposta dal server
-    # data = client_socket.recv(4096)
-    # print(str(data, "utf-8"))
-    # if not data:
-    #    print("Connessione con il server terminata.")
-
-
-def crea_comando_random():
-    """
-    Funzione che crea richieste/comandi, di carico e durata random.
-    Ad esempio, possiamo creare comandi random di calcolo; il comando scelto randomicamente verrà quindi
-    inviato al loadBalancer, che a sua volta lo inoltrerà ad un server
-
-    Returns: comando
-    -------
-    """
-    # selezione dei valori di carico e durata random
-    carico = random.randint(1, 50)
-    durata = random.randint(1, 50)
-    # creo due valori random A e B che servono per i calcoli
-    A = random.randint(1, 50)
-    B = random.randint(1, 50)
-    # creo un dizionario di possibili richieste
-    richieste = {
-        "somma": A + B,
-        "sottrazione": A - B,
-        "moltiplicazione": A * B,
-        "divisione": A / B}
-    # seleziono un comando in maniera casuale fra quelli presenti nel dizionario
-    comando_casuale = random.choice(list(richieste.keys()))
-    # creo il dizionario comando: ad ogni richiesta, associo un valore di carico e di durata, oltre che la richiesta
-    # scelta in maniera randomica
-    comando = {
-        "carico": carico,
-        "durata": durata,
-        "richiesta": comando_casuale}
-    print(comando)
-    return comando
+        """
+        try:
+            while True:
+                #controllo se la lista dei comandi è vuota, se lo è assegno il comandi 'continua' che fa scorrere continuamente il thread
+            
+                if len(self.comandi)!=0:
+                    #assegno il primo comando
+                    comando=self.comandi[0]
+                    self.comandi.pop(0)
+                else:
+                    comando="continue"
+                # se il comando è exit si manda il messaggio di chiusura al loadbalancer
+                if comando == 'exit':
+                    #imposto la flag di chiusura del client
+                    self.chiusura=True
+                    #Copyright owner Martina Bertazzzoni(feat. Antonio Spampinato)
+                    client_socket.send(comando.encode())
+                    self.counter_richieste+=1
+                    print("Chiusura della connessione con il server...")
+                    break
+                #se il comando è 'continue' faccio continuare a scorrere il thread
+                elif comando=="continue":
+                    continue
+                else:
+                    # Invia il comando al server e aumento il numero di richieste
+                    client_socket.send(comando.encode())
+                    self.counter_richieste+=1
+        except socket.error as error:
+            print(f"Errore di comunicazione con il server: {error}")
+            sys.exit(1)
+       
 
 
-def ricezione_risposta(client_socket):
-    try:
-        message = client_socket.recv(1024).decode("utf-8")
-        print(message)
-    except:
-        print("Vi è stato un errore")
+    def crea_comando_random():
+        """
+        Funzione che crea richieste/comandi, di carico e durata random.
+        Ad esempio, possiamo creare comandi random di calcolo; il comando scelto randomicamente verrà quindi
+        inviato al loadBalancer, che a sua volta lo inoltrerà ad un server
+
+        Returns: comando
+        -------
+        """
+        # selezione dei valori di carico e durata random
+        carico = random.randint(1, 50)
+        durata = random.randint(1, 50)
+        # creo due valori random A e B che servono per i calcoli
+        A = random.randint(1, 50)
+        B = random.randint(1, 50)
+        # creo un dizionario di possibili richieste
+        richieste = {
+            "somma": A + B,
+            "sottrazione": A - B,
+            "moltiplicazione": A * B,
+            "divisione": A / B}
+        # seleziono un comando in maniera casuale fra quelli presenti nel dizionario
+        comando_casuale = random.choice(list(richieste.keys()))
+        # creo il dizionario comando: ad ogni richiesta, associo un valore di carico e di durata, oltre che la richiesta
+        # scelta in maniera randomica
+        comando = {
+            "carico": carico,
+            "durata": durata,
+            "richiesta": comando_casuale}
+        print(comando)
+        return comando
+
+
+    def ricezione_risposta(self,client_socket):
+        try:
+            while True:
+                #appena finisce di ricevere richieste e l'ultima richiesta è stata 'exit' chiude la socket
+                if self.counter_richieste<=0 | self.chiusura==True:
+                    print('connessione chiusa')
+                    client_socket.close()
+                    break
+                else:
+                    message = client_socket.recv(1024).decode("utf-8")
+                    print(message)
+                    self.counter_richieste-=1
+                    print('richiesto-1',self.counter_richieste)
+                
+        except:
+            print("Vi è stato un errore")
+        
+
 
 
 if __name__ == "__main__":
-    connessione_al_loadbalancer()
+    client=client()
+    client.avvio_client()
+
 

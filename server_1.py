@@ -1,4 +1,5 @@
 import socket
+import psutil
 
 localIP = "127.0.0.1"  # L'indirizzo IP di questo server
 localPORT = 5003  # La porta su cui il server ascolterà

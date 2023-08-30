@@ -167,7 +167,6 @@ class client(object):
                     message = client_socket.recv(1024).decode("utf-8")
                     print(message)
                     self.counter_richieste-=1
-                    print('richiesto-1',self.counter_richieste)
                 
         except:
             print("Vi è stato un errore")

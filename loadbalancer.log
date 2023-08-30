@@ -1,0 +1,21 @@
+INFO - Client connesso: ('127.0.0.1', 61504)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 61504):ciao
+INFO - Client connesso: ('127.0.0.1', 61635)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 61635):aoo
+INFO - Client connesso: ('127.0.0.1', 63469)
+INFO - Client connesso: ('127.0.0.1', 63516)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 63469):Ciao
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 63469):Come stai ?
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 63516):aoo
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 63516):Come va ?
+INFO - Client connesso: ('127.0.0.1', 64931)
+INFO - Client connesso: ('127.0.0.1', 64956)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 64931):ciao
+INFO - Inoltro richiesta del Client ('127.0.0.1', 64931) al server 127.0.0.1:5003
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 64931):come stai ?
+INFO - Inoltro richiesta del Client ('127.0.0.1', 64931) al server 127.0.0.1:5004
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 64956):aoo
+INFO - Inoltro richiesta del Client ('127.0.0.1', 64956) al server 127.0.0.1:5005
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 64956):tutto bene ?
+INFO - Inoltro richiesta del Client ('127.0.0.1', 64956) al server 127.0.0.1:5003
+INFO - Disconnessione da ('127.0.0.1', 64931)

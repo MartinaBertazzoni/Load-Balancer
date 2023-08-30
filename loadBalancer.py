@@ -4,6 +4,8 @@ Implementazione del load balancer
 """
 import threading
 import socket
+import logging
+
 
 
 def round_robin_method():
@@ -19,13 +21,20 @@ class LoadBalancer(object):
         # porta in cui si mette in ascolto il server
         self.port = 5001
         self.ip = '127.0.0.1'
+        # lista che tiene  conto dei client collegati con il loadBalancer 
         self.clients = []
-        self.active_clients = []
-        self.richieste = {}  # la chiave è ip del client, argomento nome richieste
+        """(da implementare) il loadbalancer memorizza le richieste dei client qualora,
+        in caso di errore di trasmissione dei comandi al server, 
+        quest'ultimo inivii la richiesta al loadbalancer di ricevere nuovamente i compiti"""
+        self.richieste = {}  # la chiave è ip del client, argomento nome richieste 
         self.servers = ["127.0.0.1", "127.0.0.1", "127.0.0.1"]
         self.port_server = [5003, 5004, 5005]
         self.current_server_index = 0
         self.current_server_port_index = 0
+
+        # registro attività loadBalancer
+        self.log_file = 'loadbalancer.log'
+        logging.basicConfig(filename=self.log_file, level=logging.INFO, format='%(levelname)s - %(message)s')
 
     def avvio_loadbalancer(self):
         """
@@ -43,42 +52,55 @@ class LoadBalancer(object):
         -------
         None.
         """
+        logging.info(f'Client connesso: {client_socket.getpeername()}')
 
         while True:
-            # il loadBalancer riceve i dati dal client
-            data = client_socket.recv(4096)
-            message = data.decode("utf-8")
-            print()
-            if message.strip() == "exit":
-                print("SONO ENTRATO IN EXIT")
-                exit_response = "Disconnessione avvenuta con successo"
-                client_socket.send(exit_response.encode())
-                self.clients.remove(client_socket)
-                client_socket.close()
-                break
-            else:
-                print("Messaggio ricevuto dal client: {}".format(message))
-                # risposta = " Il load balancer ha ricevuto il comando e lo inoltra al primo server disponibile"
-                # il loadBalancer risponde al client per l'avvenuta connessione
-                # client_socket.send(risposta.encode())
-                # DEVO CHIAMARE LA FUNZIONE CHE INOLTRA LA RICHIESTA AD UN SERVER CON MECCANISMO ROUND ROBIN
-                self.route_message(client_socket, data)
-        client_socket.close()
+            try:
+                # il loadBalancer riceve i dati dal client
+                data = client_socket.recv(4096)
+                message = data.decode("utf-8")
+                if message.strip() == "exit": #strips leva gli spazi bianchi
+                    print(f'{client_socket.getpeername()} si sta disconnettendo dal loadbalancer')
+                    logging.info(f'Disconnessione da {client_socket.getpeername()}')
+                    exit_response = "Disconnessione avvenuta con successo"
+                    client_socket.send(exit_response.encode())
+                    self.clients.remove(client_socket)
+                    client_socket.close()
+                    break
+                else:
+                    print("Messaggio ricevuto dal client: {}".format(message))
+                    logging.info(f'Richiesta ricevuta dal Client {client_socket.getpeername()}:{message}')
 
-    def route_message(self, client_socket, data):
+                    # DEVO CHIAMARE LA FUNZIONE CHE INOLTRA LA RICHIESTA AD UN SERVER CON MECCANISMO ROUND ROBIN
+                    self.route_message(client_socket, data)
+            except:
+                print("C'è stato un errore")
+
+
+    def round_robin(self):
         server_address = self.servers[self.current_server_index]
         self.current_server_index = (self.current_server_index + 1) % len(self.servers)
         server_port = self.port_server[self.current_server_port_index]
         self.current_server_port_index = (self.current_server_port_index + 1) % len(self.port_server)
+        return server_address, server_port
 
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server_socket.connect((server_address, server_port))
-        # data = client_socket.encode(message)
-        # data = message.encode()
-        server_socket.sendall(data)
-        response = server_socket.recv(1024)
-        server_socket.close()
-        client_socket.send(response)
+    def route_message(self, client_socket, data):
+        try:
+            server_address, server_port=self.round_robin()
+
+            logging.info(f'Inoltro richiesta del Client {client_socket.getpeername()} al server {server_address}:{server_port}')
+
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_socket.connect((server_address, server_port))
+            # data = client_socket.encode(message)
+            # data = message.encode()
+            server_socket.sendall(data)
+            response = server_socket.recv(1024)
+            server_socket.close()
+            client_socket.send(response)
+        except:
+            print("C'è stato un errore")
+    
 
     def creazione_socket_loadBalancer(self):
 
@@ -97,9 +119,15 @@ class LoadBalancer(object):
         # Binding della socket all'host e alla porta
         balancer_socket.bind((self.ip, self.port))
         balancer_socket.listen()
-        # 10 è il backlog, ovvero il numero massimo di richieste che possono essere in attesa
-        # balancer_socket.listen(10)
         print("Server di load balancing in ascolto su {}:{}".format(self.ip, self.port))
+        self.connessione_client(balancer_socket)
+
+    def connessione_client(self,balancer_socket):
+                
+        """
+        Funzione che accetta le connessioni in entrata e le gestisce 
+
+        """
 
         while True:
             # Accetta le connessioni in entrata
@@ -125,8 +153,12 @@ class LoadBalancer(object):
     def monitoraggio_server(self):
         """
         metodo o insieme di metodi che ricevono e salvano le informazioni dello status (numero di richieste,
-        operativo o non operativo, carico computazionale solo se troviamo funzioni che ci consentono di osservarlo )di ogni sever  in tempi regolari
+        operativo o non operativo, carico computazionale solo se troviamo funzioni che ci consentono di osservarlo) di ogni sever  
+        in tempi regolari
         """
+
+      
+
         pass
 
     def gestione_comunicazione_server(self):

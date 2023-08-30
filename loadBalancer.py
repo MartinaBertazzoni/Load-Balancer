@@ -32,7 +32,7 @@ class LoadBalancer(object):
         self.current_server_index = 0
         self.current_server_port_index = 0
 
-        # registro attività loadBalancer
+        # registro attività loadBalancer e creazione del file loadbalancer.log
         self.log_file = 'loadbalancer.log'
         logging.basicConfig(filename=self.log_file, level=logging.INFO, format='%(levelname)s - %(message)s')
 
@@ -52,6 +52,7 @@ class LoadBalancer(object):
         -------
         None.
         """
+        #funzione che mette il log di connessione nel file loadbalancer.log al loadbalancer
         logging.info(f'Client connesso: {client_socket.getpeername()}')
 
         while True:
@@ -61,14 +62,17 @@ class LoadBalancer(object):
                 message = data.decode("utf-8")
                 if message.strip() == "exit": #strips leva gli spazi bianchi
                     print(f'{client_socket.getpeername()} si sta disconnettendo dal loadbalancer')
+                    #funzione che mette il log di disconnessione nel file loadbalancer.log al loadbalancer
                     logging.info(f'Disconnessione da {client_socket.getpeername()}')
                     exit_response = "Disconnessione avvenuta con successo"
                     client_socket.send(exit_response.encode())
+                    #il loadbalancer elimina dalla lista dei clients attivi il client che si sta disconnettendo e chiude il collegamento
                     self.clients.remove(client_socket)
                     client_socket.close()
                     break
                 else:
                     print("Messaggio ricevuto dal client: {}".format(message))
+                    #funzione che mette il log di ricervuta richesta nel file loadbalancer.log al loadbalancer
                     logging.info(f'Richiesta ricevuta dal Client {client_socket.getpeername()}:{message}')
 
                     # DEVO CHIAMARE LA FUNZIONE CHE INOLTRA LA RICHIESTA AD UN SERVER CON MECCANISMO ROUND ROBIN
@@ -78,6 +82,12 @@ class LoadBalancer(object):
 
 
     def round_robin(self):
+        """ 
+        Algoritmo di ROUND ROBIN che inoltra a turno una richiesta del client a ciascun server.
+        Quando raggiunge la fine dell'elenco, il sistema di bilanciamento del carico torna indietro e scende nuovamente nell'elenco
+
+        """
+        #chiamata del metodo per ottenere IP e PORTA del server a cui inoltare la richiesta
         server_address = self.servers[self.current_server_index]
         self.current_server_index = (self.current_server_index + 1) % len(self.servers)
         server_port = self.port_server[self.current_server_port_index]
@@ -87,13 +97,12 @@ class LoadBalancer(object):
     def route_message(self, client_socket, data):
         try:
             server_address, server_port=self.round_robin()
-
+            #funzione che mette il log di richiesta del Client inoltrata allo specifico Server nel file loadbalancer.log al loadbalancer
             logging.info(f'Inoltro richiesta del Client {client_socket.getpeername()} al server {server_address}:{server_port}')
 
+            #si crea la connessione con il server, la richiesta viene inviata e, quando è stata ricevuta, la connessione viene chiusa
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server_socket.connect((server_address, server_port))
-            # data = client_socket.encode(message)
-            # data = message.encode()
             server_socket.sendall(data)
             response = server_socket.recv(1024)
             server_socket.close()
@@ -136,19 +145,13 @@ class LoadBalancer(object):
             self.clients.append(client_socket)
             # Commento di riuscita connessione con il client
             print("Connessione accettata da {}:{}".format(client_ip[0], client_ip[1]))
-            # client_socket.send('alias?'.encode("utf-8"))
-            # alias = client_socket.recv(1024)
-            # clients.append(client)
-            # print(clients)
-            # client_socket.send("ora sei connesso!".encode("utf-8"))
-            # Avvia un thread separato per gestire il client
+            # Avvia un thread separato per gestire il client: per ogni client viene aperto un thread separato
             client_thread = threading.Thread(target=self.gestione_comunicazione_client, args=(client_socket,))
             client_thread.start()
-            # se il client si disconnette, termina il thread
+            # Quando il client si disconnette e viene levato dalla lista dei clients attivi, si chiude il thread a lui corrispondente
             if client_socket not in self.clients:
                 print(self.clients)
                 client_thread.join()
-        # self.gestione_comunicazione_client(client_socket)
 
     def monitoraggio_server(self):
         """

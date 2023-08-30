@@ -2,6 +2,7 @@ import sys
 import socket
 import random
 import threading
+import time
 
 #creata la classe client per far accedere i thread agli attributi
 class client(object):
@@ -70,17 +71,20 @@ class client(object):
             #richiede il comando da terminale 
             comando = input(" Digita il comando:  ")
             #inserisco il comando dentro la lista dei comandi da svolgere
-            self.comandi.append(comando)
-            if comando == 'exit':
-                print("Chiusura della connessione con il server...")
-                break
             if comando == 'random':
                 #self.comandi.pop(0)
                 num_richieste = int(input("Digita il numero di richieste randomiche da creare:  "))
                 for numero in range(num_richieste):
                     richiesta = self.crea_comando_random()
+                    time.sleep(0.30)
                     self.comandi.append(richiesta)
                 print(self.comandi)
+            else:
+                self.comandi.append(comando)
+            if comando == 'exit':
+                print("Chiusura della connessione con il server...")
+                break
+            
             
 
     def invia_richieste_al_loadbalancer(self, client_socket):
@@ -97,14 +101,10 @@ class client(object):
                 #controllo se la lista dei comandi è vuota, se lo è assegno il comandi 'continua' che fa scorrere continuamente il thread
             
                 if len(self.comandi)!=0:
-                    #se il comando è "random"
-                    if self.comandi[0]=="random":
-                        # elimino il primo comando
-                        self.comandi.pop(0)
-                    else:
-                        #assegno il primo comando
-                        comando=self.comandi[0]
-                        self.comandi.pop(0)
+                    #assegno il primo comando
+                    comando=self.comandi[0]
+                    self.comandi.pop(0)
+                    print(comando, self.comandi)
                 else:
                     comando="continue"
                 # se il comando è exit si manda il messaggio di chiusura al loadbalancer

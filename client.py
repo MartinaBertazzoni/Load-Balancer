@@ -74,6 +74,9 @@ class client(object):
             if comando == 'exit':
                 print("Chiusura della connessione con il server...")
                 break
+            if comando == 'random':
+                num_richieste = input("Digita il numero di richieste randomiche da creare:  ")
+                self.crea_comando_random(num_richieste)
             
 
 
@@ -119,7 +122,7 @@ class client(object):
        
 
 
-    def crea_comando_random():
+    def crea_comando_random(num_comandi):
         """
         Funzione che crea richieste/comandi, di carico e durata random.
         Ad esempio, possiamo creare comandi random di calcolo; il comando scelto randomicamente verrà quindi

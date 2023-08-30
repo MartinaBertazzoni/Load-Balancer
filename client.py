@@ -75,11 +75,13 @@ class client(object):
                 print("Chiusura della connessione con il server...")
                 break
             if comando == 'random':
-                num_richieste = input("Digita il numero di richieste randomiche da creare:  ")
-                self.crea_comando_random(num_richieste)
+                #self.comandi.pop(0)
+                num_richieste = int(input("Digita il numero di richieste randomiche da creare:  "))
+                for numero in range(num_richieste):
+                    richiesta = self.crea_comando_random()
+                    self.comandi.append(richiesta)
+                print(self.comandi)
             
-
-
 
     def invia_richieste_al_loadbalancer(self, client_socket):
         """
@@ -95,9 +97,14 @@ class client(object):
                 #controllo se la lista dei comandi è vuota, se lo è assegno il comandi 'continua' che fa scorrere continuamente il thread
             
                 if len(self.comandi)!=0:
-                    #assegno il primo comando
-                    comando=self.comandi[0]
-                    self.comandi.pop(0)
+                    #se il comando è "random"
+                    if self.comandi[0]=="random":
+                        # elimino il primo comando
+                        self.comandi.pop(0)
+                    else:
+                        #assegno il primo comando
+                        comando=self.comandi[0]
+                        self.comandi.pop(0)
                 else:
                     comando="continue"
                 # se il comando è exit si manda il messaggio di chiusura al loadbalancer
@@ -109,6 +116,7 @@ class client(object):
                     self.counter_richieste+=1
                     print("Chiusura della connessione con il server...")
                     break
+                    
                 #se il comando è 'continue' faccio continuare a scorrere il thread
                 elif comando=="continue":
                     continue
@@ -122,37 +130,21 @@ class client(object):
        
 
 
-    def crea_comando_random(num_comandi):
+    def crea_comando_random(self):
         """
-        Funzione che crea richieste/comandi, di carico e durata random.
+        Funzione che crea richieste/comandi random.
         Ad esempio, possiamo creare comandi random di calcolo; il comando scelto randomicamente verrà quindi
         inviato al loadBalancer, che a sua volta lo inoltrerà ad un server
 
         Returns: comando
         -------
         """
-        # selezione dei valori di carico e durata random
-        carico = random.randint(1, 50)
-        durata = random.randint(1, 50)
-        # creo due valori random A e B che servono per i calcoli
-        A = random.randint(1, 50)
-        B = random.randint(1, 50)
-        # creo un dizionario di possibili richieste
-        richieste = {
-            "somma": A + B,
-            "sottrazione": A - B,
-            "moltiplicazione": A * B,
-            "divisione": A / B}
-        # seleziono un comando in maniera casuale fra quelli presenti nel dizionario
-        comando_casuale = random.choice(list(richieste.keys()))
-        # creo il dizionario comando: ad ogni richiesta, associo un valore di carico e di durata, oltre che la richiesta
-        # scelta in maniera randomica
-        comando = {
-            "carico": carico,
-            "durata": durata,
-            "richiesta": comando_casuale}
-        print(comando)
-        return comando
+        # creo una lista di possibili richieste
+        comandi_possibili = ["somma", "sottrazione", "moltiplicazione", "divisione"]
+        # scelgo casualmente uno fra i comandi dalla lista dei comandi
+        comando_casuale = random.choice(list(comandi_possibili))
+            
+        return comando_casuale
 
 
     def ricezione_risposta(self,client_socket):

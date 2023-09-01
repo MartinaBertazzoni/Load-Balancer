@@ -5,7 +5,7 @@ import sys
 class server(object):
     def __init__(self):
         self.ip = "127.0.0.1"
-        self.port = 5002
+        self.port = 5003
         self.clients = []
         self.active_clients = []
         self.richieste = {}  # la chiave è ip del client, argomento nome richieste
@@ -72,5 +72,9 @@ class server(object):
     # MANCA L'ATTRIBUTO CHE INVIA LA SOLUZIONE DEI COMANDI AL CLIENT
 
 
+
+if __name__ == "__main__":
+    server = server()
+    server.socket_server()
 
 

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import socket
 import threading
 import random
@@ -5,11 +7,12 @@ import random
 class server(object):
     def __init__(self):
         self.ip = "127.0.0.1"
-        self.port = 5003
+        self.port = 5005
         self.clients = []
         self.active_clients = []
         self.richieste = {}  # la chiave è ip del client, argomento nome richieste
-       
+
+
 
     def socket_server(self):
         """
@@ -95,5 +98,3 @@ class server(object):
 if __name__ == "__main__":
     server = server()
     server.socket_server()
-
-

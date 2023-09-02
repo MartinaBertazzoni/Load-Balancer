@@ -10,7 +10,7 @@ class server(object):
         self.clients = []
         self.active_clients = []
         self.richieste = {}  # la chiave è ip del client, argomento nome richieste
-        self.comandi = {}
+        self.comandi = []
 
 
 
@@ -64,10 +64,13 @@ class server(object):
             client_socket.sendall(response.encode('utf-8'))
             # decodifico i comandi
             comando = data.decode("utf-8")
+            self.comandi.append(comando)
             # inserisco i comandi nella lista dei comandi da svolgere
-            self.richieste[client_socket] = comando
-            # richiamo il metodo per eseguire i comandi
-            self.esegui_comandi(comando, client_socket)
+            #self.richieste[client_socket] = comando
+            for comando in self.comandi:
+                # richiamo il metodo per eseguire i comandi
+                risultato = self.esegui_comandi(comando, client_socket)
+                print(risultato)
         client_socket.close()
 
 
@@ -75,7 +78,8 @@ class server(object):
         # creo due valori random A e B che servono per i calcoli
         A = random.randint(1, 50)
         B = random.randint(1, 50)
-        
+        print(A)
+        print(B)
         if comando == "somma":
             risultato=A+B
         if comando == "sottrazione":
@@ -84,8 +88,8 @@ class server(object):
             risultato=A*B
         if comando == "divisione":
             risultato=A/B
-            
-        return risultato
+        soluzione={'A':A, 'B':B, 'risultato':risultato}
+        return soluzione
         
 
     # MANCA L'ATTRIBUTO CHE INVIA LA SOLUZIONE DEI COMANDI AL CLIENT

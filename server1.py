@@ -76,8 +76,17 @@ class server(object):
         A = random.randint(1, 50)
         B = random.randint(1, 50)
         
+        if comando == "somma":
+            risultato=A+B
+        if comando == "sottrazione":
+            risultato=A-B
+        if comando == "moltiplicazione":
+            risultato=A*B
+        if comando == "divisione":
+            risultato=A/B
+            
+        return risultato
         
-        pass
 
     # MANCA L'ATTRIBUTO CHE INVIA LA SOLUZIONE DEI COMANDI AL CLIENT
 

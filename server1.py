@@ -1,6 +1,7 @@
 import socket
 import threading
 import sys
+import random
 
 class server(object):
     def __init__(self):
@@ -40,14 +41,15 @@ class server(object):
             # accetto le connessioni in entrata
             client_socket, client_ip = server_socket.accept()
             # avvio un thread per gestire le richieste del client
-            thread_richieste_client = threading.Thread(target=self.richieste_client, args=(client_socket,))
+            thread_richieste_client = threading.Thread(target=self.richieste_client, args=(client_socket,client_ip,))
             thread_richieste_client.start()
             # se il client si disconnette, termina il thread
             if client_socket not in self.clients:
                 thread_richieste_client.join()
+        
 
 
-    def richieste_client(self, client_socket):
+    def richieste_client(self, client_socket, client_ip):
         """
         Funzione che gestisce le richieste del client
         """
@@ -57,6 +59,9 @@ class server(object):
             # se non ricevo più comandi, esco dal ciclo
             if not data:
                 break
+            print('{}: received message: {}'.format(client_ip, data.decode('utf-8')))
+            response = "Risposta dal server di destinazione"
+            client_socket.sendall(response.encode('utf-8'))
             # decodifico i comandi
             comando = data.decode("utf-8")
             # inserisco i comandi nella lista dei comandi da svolgere
@@ -67,6 +72,11 @@ class server(object):
 
 
     def esegui_comandi(self, comando, client_socket):
+        # creo due valori random A e B che servono per i calcoli
+        A = random.randint(1, 50)
+        B = random.randint(1, 50)
+        
+        
         pass
 
     # MANCA L'ATTRIBUTO CHE INVIA LA SOLUZIONE DEI COMANDI AL CLIENT

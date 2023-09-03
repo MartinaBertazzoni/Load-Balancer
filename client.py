@@ -69,14 +69,18 @@ class client(object):
         Funzione che simula una interfaccia che richiede i comandi da svolgere
         """
         while True:
-            # richiedo in input il numero di richieste da creare
-            num_richieste = int(input("Digita il numero di richieste randomiche da creare:  "))
-            # richiamo il metodo di creazione dei comandi un numero di volte pari al numero di richieste
-            for numero in range(num_richieste):
-                richiesta = self.crea_comando_random()
-                time.sleep(0.30)
-                self.comandi.append(richiesta)
-            print(self.comandi)
+            try:
+                # richiedo in input il numero di richieste da creare
+                num_richieste = int(input("Digita il numero intero di richieste randomiche da creare:  "))
+                # richiamo il metodo di creazione dei comandi un numero di volte pari al numero di richieste
+                for numero in range(num_richieste):
+                    richiesta = self.crea_comando_random()
+                    time.sleep(0.30)
+                    self.comandi.append(richiesta)
+                    print(self.comandi)
+            except:
+                print("L'input non è un valore intero")
+                self.interfaccia_client()
            
 
     def invia_richieste_al_loadbalancer(self, client_socket):

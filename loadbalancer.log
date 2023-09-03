@@ -23,3 +23,27 @@ INFO - Richiesta ricevuta dal Client ('127.0.0.1', 55980):divisione
 INFO - Inoltro richiesta del Client ('127.0.0.1', 55980) al server 127.0.0.1:5009
 INFO - Richiesta ricevuta dal Client ('127.0.0.1', 55980):moltiplicazione
 INFO - Inoltro richiesta del Client ('127.0.0.1', 55980) al server 127.0.0.1:5007
+INFO - Client connesso: ('127.0.0.1', 56342)
+INFO - Client connesso: ('127.0.0.1', 56750)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56750):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56750) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56750):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56750) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56750):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56750) al server 127.0.0.1:5009
+INFO - Client connesso: ('127.0.0.1', 57062)
+INFO - Client connesso: ('127.0.0.1', 57386)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 57386):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 57386) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 57386):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 57386) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 57386):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 57386) al server 127.0.0.1:5009
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 57386):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 57386) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 57386):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 57386) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 57386):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 57386) al server 127.0.0.1:5009
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 57386):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 57386) al server 127.0.0.1:5007

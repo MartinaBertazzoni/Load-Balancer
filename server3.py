@@ -7,7 +7,7 @@ import random
 class server(object):
     def __init__(self):
         self.ip = "127.0.0.1"
-        self.port = 5005
+        self.port = 5009
         self.clients = []
         self.active_clients = []
         self.richieste = {}  # la chiave è ip del client, argomento nome richieste

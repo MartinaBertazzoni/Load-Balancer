@@ -19,7 +19,7 @@ class LoadBalancer(object):
         Costruttore della classe loadBalancer
         """
         # porta in cui si mette in ascolto il server
-        self.port = 5001
+        self.port = 5006
         self.ip = '127.0.0.1'
         # lista che tiene  conto dei client collegati con il loadBalancer 
         self.clients = []
@@ -28,7 +28,7 @@ class LoadBalancer(object):
         quest'ultimo inivii la richiesta al loadbalancer di ricevere nuovamente i compiti"""
         self.richieste = {}  # la chiave è ip del client, argomento nome richieste 
         self.servers = ["127.0.0.1", "127.0.0.1", "127.0.0.1"]
-        self.port_server = [5003, 5004, 5005]
+        self.port_server = [5007, 5008, 5009]
         self.current_server_index = 0
         self.current_server_port_index = 0
 

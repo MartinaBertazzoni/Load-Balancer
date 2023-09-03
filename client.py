@@ -7,6 +7,7 @@ import time
 #creata la classe client per far accedere i thread agli attributi
 class client(object):
 
+    
     def __init__(self):
         """
         Costruttore della classe client

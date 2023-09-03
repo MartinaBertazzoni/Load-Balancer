@@ -152,6 +152,7 @@ class LoadBalancer(object):
             if client_socket not in self.clients:
                 print(self.clients)
                 client_thread.join()
+                
 
     def monitoraggio_server(self):
         """
@@ -159,9 +160,6 @@ class LoadBalancer(object):
         operativo o non operativo, carico computazionale solo se troviamo funzioni che ci consentono di osservarlo) di ogni sever  
         in tempi regolari
         """
-
-      
-
         pass
 
     def gestione_comunicazione_server(self):

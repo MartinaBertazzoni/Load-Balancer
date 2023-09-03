@@ -66,6 +66,7 @@ class server(object):
             # richiamo il metodo per eseguire i comandi
             risultato = self.esegui_comandi(comando, client_socket)
             print(risultato)
+            
         client_socket.close()
 
 

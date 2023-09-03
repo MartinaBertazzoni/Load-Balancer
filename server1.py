@@ -57,8 +57,8 @@ class server(object):
             if not data:
                 break
             print('{}: received message: {}'.format(client_ip, data.decode('utf-8')))
-            response = "Risposta dal server di destinazione"
-            client_socket.sendall(response.encode('utf-8'))
+            # response = "Risposta dal server di destinazione"
+            # client_socket.sendall(response.encode('utf-8'))
             # decodifico i comandi
             comando = data.decode("utf-8")
             # inserisco i comandi nella lista dei comandi da svolgere
@@ -66,7 +66,8 @@ class server(object):
             # richiamo il metodo per eseguire i comandi
             risultato = self.esegui_comandi(comando, client_socket)
             print(risultato)
-            
+            risultato_stringa=str(risultato)
+            client_socket.sendall(risultato_stringa.encode('utf-8'))
         client_socket.close()
 
 

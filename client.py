@@ -71,18 +71,26 @@ class client(object):
         Funzione che simula una interfaccia che richiede i comandi da svolgere
         """
         while True:
-            try:
-                # richiedo in input il numero di richieste da creare
-                num_richieste = int(input("Digita il numero intero di richieste randomiche da creare:  "))
-                # richiamo il metodo di creazione dei comandi un numero di volte pari al numero di richieste
+            #richiede il comando da terminale 
+            comando = input(" Digita il comando:  ")
+            #inserisco il comando dentro la lista dei comandi da svolgere
+            if comando == 'random':
+                #self.comandi.pop(0)
+                num_richieste = int(input("Digita il numero di richieste randomiche da creare:  "))
                 for numero in range(num_richieste):
                     richiesta = self.crea_comando_random()
                     time.sleep(0.30)
                     self.comandi.append(richiesta)
-                    print(self.comandi)
-            except:
-                print("L'input non è un valore intero")
-                self.interfaccia_client()
+                print(self.comandi)
+            else:
+                self.comandi.append(comando)
+            if comando == 'exit':
+                self.comandi.append(comando)
+                print("Chiusura della connessione con il server...")
+                break
+
+            
+            
 
     def invia_richieste_al_loadbalancer(self, client_socket):
         """
@@ -102,11 +110,25 @@ class client(object):
                     comando = self.comandi[0]
                     self.comandi.pop(0)
                     print(comando, self.comandi)
+                else:
+                    comando="continue"
+                # se il comando è exit si manda il messaggio di chiusura al loadbalancer
+                if comando == 'exit':
+                    #imposto la flag di chiusura del client
+                    self.chiusura=True
+                    #Copyright owner Martina Bertazzzoni(feat. Antonio Spampinato)
+                    client_socket.send(comando.encode())
+                    self.counter_richieste+=1
+                    print("Chiusura della connessione con il server...")
+                    break
+                    
+                #se il comando è 'continue' faccio continuare a scorrere il thread
+                elif comando=="continue":
+                    continue
+                else:
                     # Invia il comando al server e aumento il numero di richieste
                     client_socket.send(comando.encode())
                     self.counter_richieste += 1
-                else:
-                    continue
 
                 # se il comando è exit si manda il messaggio di chiusura al loadbalancer
                 # if comando == 'exit':

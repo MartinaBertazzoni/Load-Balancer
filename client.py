@@ -4,21 +4,21 @@ import random
 import threading
 import time
 
-#creata la classe client per far accedere i thread agli attributi
+
+# creata la classe client per far accedere i thread agli attributi
 class client(object):
 
-    
     def __init__(self):
         """
         Costruttore della classe client
         """
-        #stack dove vengono inseriti i comandi svolgere
-        self.comandi=[]
-        #variabile che conta il numero richieste inviate e che devono ricevere risposta
-        self.counter_richieste=0
-        #flag che mi dice se chiudere il socket
-        self.chiusura=False
-    
+        # stack dove vengono inseriti i comandi svolgere
+        self.comandi = []
+        # variabile che conta il numero richieste inviate e che devono ricevere risposta
+        self.counter_richieste = 0
+        # flag che mi dice se chiudere il socket
+        self.chiusura = False
+
     def avvio_client(self):
         """
         Funzione che avvia e chiude tre thread:
@@ -27,14 +27,16 @@ class client(object):
         3.thread che rimane in ascolto per ricevere le risposte delle richieste inviate
         """
         client_socket = self.connessione_al_loadbalancer()
-        interfaccia=threading.Thread(target=self.interfaccia_client)
-        invio_richieste=threading.Thread(target=self.invia_richieste_al_loadbalancer, args=(client_socket,))
-        ricevi_risposte=threading.Thread(target=self.ricezione_risposta, args=(client_socket,))
-        interfaccia.start();invio_richieste.start();ricevi_risposte.start()
-        interfaccia.join();invio_richieste.join();ricevi_risposte.join()
+        interfaccia = threading.Thread(target=self.interfaccia_client)
+        invio_richieste = threading.Thread(target=self.invia_richieste_al_loadbalancer, args=(client_socket,))
+        ricevi_risposte = threading.Thread(target=self.ricezione_risposta, args=(client_socket,))
+        interfaccia.start();
+        invio_richieste.start();
+        ricevi_risposte.start()
+        interfaccia.join();
+        invio_richieste.join();
+        ricevi_risposte.join()
 
-
-        
     def connessione_al_loadbalancer(self):
         """
         Funzione che collega il client al loadbalancer attraverso il socket.
@@ -52,11 +54,11 @@ class client(object):
             # client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # connetto il client con il loadBalancer
             # client_socket.connect((loadBalancer_ip, loadBalancer_port))
-            client_socket.connect(("127.0.0.1", 5006))
+            client_socket.connect(("127.0.0.1", 60002))
 
             print(f"Connessione al server {loadBalancer_ip}:{loadBalancer_port} stabilita.")
             # DEVO RICHIAMARE COME FUNZIONE L'INTERFACCIA_CON_LOADBALANCER()
-            #interfaccia_con_loadbalancer(client_socket)
+            # interfaccia_con_loadbalancer(client_socket)
             # return client_socket
             return client_socket
         except:
@@ -81,7 +83,6 @@ class client(object):
             except:
                 print("L'input non è un valore intero")
                 self.interfaccia_client()
-           
 
     def invia_richieste_al_loadbalancer(self, client_socket):
         """
@@ -94,20 +95,19 @@ class client(object):
         """
         try:
             while True:
-                #controllo se la lista dei comandi è vuota, se lo è assegno il comandi 'continua' che fa scorrere continuamente il thread
-            
-                if len(self.comandi)!=0:
-                    #assegno il primo comando
-                    comando=self.comandi[0]
+                # controllo se la lista dei comandi è vuota, se lo è assegno il comandi 'continua' che fa scorrere continuamente il thread
+
+                if len(self.comandi) != 0:
+                    # assegno il primo comando
+                    comando = self.comandi[0]
                     self.comandi.pop(0)
                     print(comando, self.comandi)
                     # Invia il comando al server e aumento il numero di richieste
                     client_socket.send(comando.encode())
-                    self.counter_richieste+=1
+                    self.counter_richieste += 1
                 else:
                     continue
-                     
-                
+
                 # se il comando è exit si manda il messaggio di chiusura al loadbalancer
                 # if comando == 'exit':
                 #     #imposto la flag di chiusura del client
@@ -117,18 +117,15 @@ class client(object):
                 #     self.counter_richieste+=1
                 #     print("Chiusura della connessione con il server...")
                 #     break
-                    
-                #se il comando è 'continue' faccio continuare a scorrere il thread
+
+                # se il comando è 'continue' faccio continuare a scorrere il thread
                 # elif comando=="continue":
-                #     
+                #
                 # else:
-                    
+
         except socket.error as error:
             print(f"Errore di comunicazione con il server: {error}")
             sys.exit(1)
-                    
-       
-
 
     def crea_comando_random(self):
         """
@@ -143,31 +140,26 @@ class client(object):
         comandi_possibili = ["somma", "sottrazione", "moltiplicazione", "divisione"]
         # scelgo casualmente uno fra i comandi dalla lista dei comandi
         comando_casuale = random.choice(list(comandi_possibili))
-            
+
         return comando_casuale
 
-
-    def ricezione_risposta(self,client_socket):
+    def ricezione_risposta(self, client_socket):
         try:
             while True:
-                #appena finisce di ricevere richieste e l'ultima richiesta è stata 'exit' chiude la socket
-                if self.counter_richieste<=0 | self.chiusura==True:
+                # appena finisce di ricevere richieste e l'ultima richiesta è stata 'exit' chiude la socket
+                if self.counter_richieste <= 0 | self.chiusura == True:
                     print('connessione chiusa')
                     client_socket.close()
                     break
                 else:
                     message = client_socket.recv(1024).decode("utf-8")
                     print(message)
-                    self.counter_richieste-=1
-                
+                    self.counter_richieste -= 1
+
         except:
             print("Vi è stato un errore")
-        
-
 
 
 if __name__ == "__main__":
-    client=client()
+    client = client()
     client.avvio_client()
-
-

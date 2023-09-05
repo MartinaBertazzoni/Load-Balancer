@@ -14,7 +14,6 @@ class server(object):
     def socket_server(self):
         
         """
-        
         Metodo che crea la socket del server e crea un thread che rimane in ascolto per ricevere i comandi dal loadBalancer
 
         Returns
@@ -80,7 +79,7 @@ class server(object):
             if not data:
                 break
             print('{}: received message: {}'.format(client_ip, data.decode('utf-8')))
-            comando = data.decode("utf-8")  # decodifico i comandi
+            comando = data.decode("utf-8")
             self.richieste[client_socket] = comando  # inserisco i comandi nella lista dei comandi da svolgere
             risultato = self.esegui_comandi(comando, client_socket)  # chiamo il metodo per eseguire i comandi ricevuti
             print(risultato)
@@ -90,8 +89,8 @@ class server(object):
 
 
     def esegui_comandi(self, comando, client_socket):
-        """
         
+        """
 
         Parameters
         ----------

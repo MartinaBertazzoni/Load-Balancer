@@ -16,20 +16,17 @@ class server(object):
 
 
 
+
     def socket_server(self):
-        
         """
-        
-        Metodo che crea la socket del server e crea un thread che rimane in ascolto per ricevere i comandi dal loadBalancer
-
-        Returns
-        -------
-        None.
-
+        Funzione che crea la socket del server e crea un thread che rimane in ascolto per ricevere i comandi dal load balancer
         """
-        # creo una socket server e la metto in ascolto
+        # creo una socket server
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # collego la socket al server
         server_socket.bind((self.ip, self.port))
+        # metto in ascolto il server
         server_socket.listen()
         print(f"Server in ascolto su {self.ip}:{self.port}")
         # creo un thread che rimane in ascolto per ricevere i comandi dal load balancer
@@ -40,18 +37,8 @@ class server(object):
 
 
     def gestione_client(self, server_socket):
-        
         """
-        Metodo che rimane in ascolto per ricevere i comandi dal loadBalancer
-
-        Parameters
-        ----------
-        server_socket : socket
-
-        Returns
-        -------
-        None.
-
+        Funzione che rimane in ascolto per ricevere i comandi dal load balancer
         """
         while True:
             # accetto le connessioni in entrata
@@ -66,17 +53,8 @@ class server(object):
 
 
     def richieste_client(self, client_socket, client_ip):
-        
         """
-        Parameters
-        ----------
-        client_socket : socket
-        client_ip : str
-
-        Returns
-        -------
-        None.
-
+        Funzione che gestisce le richieste del client
         """
         while True:
             # ricevo i comandi dal load balancer
@@ -97,22 +75,7 @@ class server(object):
         client_socket.close()
 
 
-
     def esegui_comandi(self, comando, client_socket):
-        
-        """
-        Parameters
-        ----------
-        comando : str
-             stringa che contiene il comando da eseguire
-        client_socket : socket
-
-        Returns
-        -------
-        soluzione : dict
-             dizionario che contiene i numeri scelti, l'operazione da svolgere e il risultato
-
-        """
         # creo due valori random A e B che servono per i calcoli
         A = random.randint(1, 50)
         B = random.randint(1, 50)

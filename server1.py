@@ -91,7 +91,7 @@ class server(object):
     def esegui_comandi(self, comando, client_socket):
         
         """
-
+        
         Parameters
         ----------
         comando : str
@@ -121,9 +121,6 @@ class server(object):
                    'risultato': risultato}
         return soluzione
         
-
-    # MANCA L'ATTRIBUTO CHE INVIA LA SOLUZIONE DEI COMANDI AL CLIENT
-
 
 
 if __name__ == "__main__":

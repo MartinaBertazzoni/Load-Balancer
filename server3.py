@@ -14,7 +14,6 @@ class server(object):
 
 
 
-
     def socket_server(self):
         
         """
@@ -26,12 +25,9 @@ class server(object):
         None.
 
         """
-        # creo una socket server
+        # creo una socket server e la metto in ascolto
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # collego la socket al server
         server_socket.bind((self.ip, self.port))
-        # metto in ascolto il server
         server_socket.listen()
         print(f"Server in ascolto su {self.ip}:{self.port}")
         # creo un thread che rimane in ascolto per ricevere i comandi dal load balancer

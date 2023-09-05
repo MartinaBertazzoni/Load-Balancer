@@ -18,6 +18,8 @@ class client(object):
         self.counter_richieste = 0
         # flag che mi dice se chiudere il socket
         self.chiusura = False
+        
+        
 
     def avvio_client(self):
         

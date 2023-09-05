@@ -16,8 +16,15 @@ class server(object):
 
 
     def socket_server(self):
+        
         """
-        Funzione che crea la socket del server e crea un thread che rimane in ascolto per ricevere i comandi dal load balancer
+        
+        Metodo che crea la socket del server e crea un thread che rimane in ascolto per ricevere i comandi dal loadBalancer
+
+        Returns
+        -------
+        None.
+
         """
         # creo una socket server
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -35,8 +42,18 @@ class server(object):
 
 
     def gestione_client(self, server_socket):
+        
         """
-        Funzione che rimane in ascolto per ricevere i comandi dal load balancer
+        Metodo che rimane in ascolto per ricevere i comandi dal loadBalancer
+
+        Parameters
+        ----------
+        server_socket : socket
+
+        Returns
+        -------
+        None.
+
         """
         while True:
             # accetto le connessioni in entrata
@@ -51,8 +68,17 @@ class server(object):
 
 
     def richieste_client(self, client_socket, client_ip):
+        
         """
-        Funzione che gestisce le richieste del client
+        Parameters
+        ----------
+        client_socket : socket
+        client_ip : str
+
+        Returns
+        -------
+        None.
+
         """
         while True:
             # ricevo i comandi dal load balancer
@@ -73,7 +99,22 @@ class server(object):
         client_socket.close()
 
 
+
     def esegui_comandi(self, comando, client_socket):
+        
+        """
+        Parameters
+        ----------
+        comando : str
+             stringa che contiene il comando da eseguire
+        client_socket : socket
+
+        Returns
+        -------
+        soluzione : dict
+             dizionario che contiene i numeri scelti, l'operazione da svolgere e il risultato
+
+        """
         # creo due valori random A e B che servono per i calcoli
         A = random.randint(1, 50)
         B = random.randint(1, 50)

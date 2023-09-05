@@ -14,16 +14,17 @@ class LoadBalancer(object):
         """
         Costruttore della classe loadBalancer
         """
-
         # porta in cui si mette in ascolto il server
         self.port = 60002
         self.ip = '127.0.0.1'
+        
         # lista che tiene  conto dei client collegati con il loadBalancer
         self.clients = []
         self.active_clients=[]
         """(da implementare) il loadbalancer memorizza le richieste dei client qualora,
         in caso di errore di trasmissione dei comandi al server, 
         quest'ultimo inivii la richiesta al loadbalancer di ricevere nuovamente i compiti"""
+        
         self.richieste = {}  # la chiave è ip del client, argomento nome richieste
         self.servers = ["127.0.0.1", "127.0.0.1", "127.0.0.1"]
         self.port_server = [5007, 5008, 5009]
@@ -38,6 +39,7 @@ class LoadBalancer(object):
         self.shutdown_event = multiprocessing.Event()  # Event to signal shutdown
         self.keyboard_listener = None  # Store the keyboard listener object
         self.keyboard_process = multiprocessing.Process(target=self.monitor_keyboard_input)
+        
 
     def monitor_keyboard_input(self):
          # Create a keyboard listener with a timeout
@@ -49,6 +51,7 @@ class LoadBalancer(object):
     def handle_esc_key(self, key):
         if key == keyboard.Key.esc:
             self.shutdown_event.set()
+            
 
     def shutdown(self):
         print("Shutting down...")
@@ -60,10 +63,10 @@ class LoadBalancer(object):
                     client_socket.close()
             for thread in threading.enumerate():
                 if not thread.daemon and thread != threading.main_thread():
-        
                     thread.join()
             print("Load balancer has been shut down.")
             sys.exit(0)
+            
             
     def avvio_loadbalancer(self):
         """
@@ -71,13 +74,24 @@ class LoadBalancer(object):
         e server
         """
         pass
+    
 
     def gestione_comunicazione_client(self, client_socket):
         """
-        Funzione che gestisce la comunicazione con il client:
-        il server riceve i dati dal client e invia una risposta di avvenuta connessione;
-        in seguito invierà il comando ad un server per elaborare la richiesta
+        Metodo che gestisce la comunicazione del loadBalancer con il client:
+            il loadBalancer riceve i dati dal client e invia una risposta di avvenuta connessione;
+            in seguito invia il comando ad un server per elaborare la richiesta
+
+        Parameters
+        ----------
+        client_socket 
+        
+        Returns
+        -------
+        None.
+        
         """
+
         # funzione che mette il log di connessione nel file loadbalancer.log al loadbalancer
         logging.info(f'Client connesso: {client_socket.getpeername()}')
         
@@ -109,7 +123,9 @@ class LoadBalancer(object):
             client_socket.close()
 
     def round_robin(self):
+        
         """
+        
         Algoritmo di ROUND ROBIN che inoltra a turno una richiesta del client a ciascun server.
         Quando raggiunge la fine dell'elenco, il sistema di bilanciamento del carico torna indietro e scende nuovamente nell'elenco
 
@@ -167,7 +183,6 @@ class LoadBalancer(object):
 
         # Creazione della socket del server
         self.balancer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.balancer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # Binding della socket all'host e alla porta
         self.balancer_socket.bind((self.ip, self.port))
         self.balancer_socket.listen()
@@ -200,6 +215,7 @@ class LoadBalancer(object):
                     continue
             except:    
                 continue
+            
             
     def thread_client(self):
         active_threads = []  # List to store active client threads
@@ -250,15 +266,6 @@ class LoadBalancer(object):
         # Attendi un certo intervallo di tempo prima di effettuare un nuovo controllo
         #time.sleep(5)  # Controlla lo stato dei server ogni 5 secondi
         print(self.server_flags)
-
-    def gestione_comunicazione_server(self):
-        """
-        funzione che invia e distribuisce le richieste(tramite la funzione di algortimo nel nostro caso il round robin).
-        manda il segnale di chiusura della richiesta, reinvia il risulatato della richiesta
-
-        """
-        pass
-
 
 
 

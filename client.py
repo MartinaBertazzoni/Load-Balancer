@@ -108,7 +108,7 @@ class client(object):
         
         Parameters
         ----------
-        client_socket 
+        client_socket: socket
 
         Returns
         -------
@@ -171,7 +171,7 @@ class client(object):
         
         Parameters
         ----------
-        client_socket
+        client_socket: socket
 
         Returns
         -------

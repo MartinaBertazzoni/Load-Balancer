@@ -84,7 +84,7 @@ class LoadBalancer(object):
 
         Parameters
         ----------
-        client_socket 
+        client_socket: socket
         
         Returns
         -------
@@ -125,23 +125,30 @@ class LoadBalancer(object):
     def round_robin(self):
         
         """
-        
-        Algoritmo di ROUND ROBIN che inoltra a turno una richiesta del client a ciascun server.
-        Quando raggiunge la fine dell'elenco, il sistema di bilanciamento del carico torna indietro e scende nuovamente nell'elenco
+        Metodo che implementa l'algoritmo di Round Robin. L'algoritmo inoltra a turno una richiesta del client a ciascun server
+        in maniera sequenziale. Quando viene inoltrata la richiesta all'ultimo server della lista, il sistema di bilanciamento 
+        del carico ricomincia a scorrere la lista a partire dal primo server.
+
+        Returns
+        -------
+        server_address: str
+            ip del server attivo
+        server_port: int
+            porta del server attivo
 
         """
         while True:
-            # MONITORO LO STATO DEI SERVER PRIMA DI SCEGLIERE
+            # Richiamo il metodo di monitoraggio del server, che riporta quali sono i server attivi e quelli inattivi
             self.monitoraggio_server()
-            # Scegli il prossimo server nell'ordine circolare
+            # Scelgo il prossimo server
             server_address = self.servers[self.current_server_index]
             server_port = self.port_server[self.current_server_port_index]
 
-            # Verifica se il server selezionato è attivo (flag True)
+            # Verifico se il server selezionato è attivo (flag True); se sì, esci dal ciclo
             if self.server_flags[self.current_server_index]:
-                break  # Esci dal ciclo se il server è attivo
+                break
 
-            # Se il server non è attivo, passa al successivo nell'ordine
+            # Se il server non è attivo, passa al server successivo
             self.current_server_index = (self.current_server_index + 1) % len(self.servers)
             self.current_server_port_index = (self.current_server_port_index + 1) % len(self.port_server)
 
@@ -153,12 +160,27 @@ class LoadBalancer(object):
 
 
     def route_message(self, client_socket, data):
+        
+        """
+        Metodo che connette il loadBalancer al server appena selezionato con l'algoritmo di Round Robin, gli inoltra
+        la richiesta, riceve la risposta e la inoltra al client.
+        
+        Parameters
+        ----------
+        client_socket: socket
+        
+        data: 
+
+        Returns
+        -------
+        None.
+
+        """
         try:
             server_address, server_port = self.round_robin()
             # funzione che mette il log di richiesta del Client inoltrata allo specifico Server nel file loadbalancer.log al loadbalancer
             logging.info(
                 f'Inoltro richiesta del Client {client_socket.getpeername()} al server {server_address}:{server_port}')
-
             # si crea la connessione con il server, la richiesta viene inviata e, quando è stata ricevuta, la connessione viene chiusa
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server_socket.connect((server_address, server_port))
@@ -172,13 +194,12 @@ class LoadBalancer(object):
     def creazione_socket_loadBalancer(self):
 
         """
-        Funzione che crea la socket TCP del loadBalancer per connetterlo all'host ed ai server
-
-        (da modificare)
+        Metodo che crea la socket TCP del loadBalancer 
 
         Returns
         -------
         None.
+        
         """
 
         # Creazione della socket del server
@@ -195,15 +216,20 @@ class LoadBalancer(object):
         
 
     def connessione_client(self):
-                
+        
         """
-        Funzione che accetta le connessioni in entrata e le gestisce
+        Metodo che connette il loadBalancer con il client
+        
+        Returns
+        -------
+        None.
 
         """
 
         while not self.shutdown_event.is_set():
             try:
                 self.balancer_socket.settimeout(1)
+                
                 try:
                     # Accetta le connessioni in entrata
                     client_socket, client_ip = self.balancer_socket.accept()
@@ -218,6 +244,14 @@ class LoadBalancer(object):
             
             
     def thread_client(self):
+        """
+        
+
+        Returns
+        -------
+        None.
+
+        """
         active_threads = []  # List to store active client threads
 
         while not self.shutdown_event.is_set():
@@ -226,7 +260,6 @@ class LoadBalancer(object):
                 print(self.clients)
                 self.clients.remove(client_socket)
                 self.active_clients.append(client_socket)
-
                 # Avvia un thread separato per gestire il client: per ogni client viene aperto un thread separato
                 client_thread = threading.Thread(target=self.gestione_comunicazione_client, args=(client_socket,))
                 client_thread.start()
@@ -245,13 +278,19 @@ class LoadBalancer(object):
 
 
     def monitoraggio_server(self):
+        
         """
-        metodo o insieme di metodi che ricevono e salvano le informazioni dello status (numero di richieste,
-        operativo o non operativo, carico computazionale solo se troviamo funzioni che ci consentono di osservarlo) di ogni sever
-        in tempi regolari
+        Metodo che verifica lo stato di attività o inattività dei server. 
+
+        Returns
+        -------
+        server_flags: list[bool]
+            lista di valori booleani che indicano l'attività (True) 
+            o l'inattività (False) di ogni server collegato al loadBalancer
+        
         """
         for i, server_address in enumerate(self.servers):
-            # Qui creo una connessione con il server per verificare il suo stato
+            # Creo una connessione con il server per verificare il suo stato
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server_socket.settimeout(2)  # Timeout per la connessione
             try:
@@ -262,9 +301,6 @@ class LoadBalancer(object):
             except (socket.timeout, ConnectionRefusedError):
                 # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
                 self.server_flags[i] = False
-
-        # Attendi un certo intervallo di tempo prima di effettuare un nuovo controllo
-        #time.sleep(5)  # Controlla lo stato dei server ogni 5 secondi
         print(self.server_flags)
 
 

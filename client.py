@@ -4,6 +4,8 @@ import random
 import threading
 import time
 
+# commento per provare il commit
+
 
 # creata la classe client per far accedere i thread agli attributi
 class client(object):

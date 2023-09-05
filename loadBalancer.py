@@ -15,7 +15,6 @@ class LoadBalancer(object):
         Costruttore della classe loadBalancer
         """
 
-        
         # porta in cui si mette in ascolto il server
         self.port = 60002
         self.ip = '127.0.0.1'
@@ -168,6 +167,7 @@ class LoadBalancer(object):
 
         # Creazione della socket del server
         self.balancer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.balancer_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # Binding della socket all'host e alla porta
         self.balancer_socket.bind((self.ip, self.port))
         self.balancer_socket.listen()

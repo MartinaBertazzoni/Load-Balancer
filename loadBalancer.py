@@ -39,7 +39,7 @@ class LoadBalancer(object):
 
         # registro attività loadBalancer e creazione del file loadbalancer.log
         self.log_file = 'loadbalancer.log'
-        logging.basicConfig(filename=self.log_file, level=logging.INFO, format='%(levelname)s - %(message)s')
+        logging.basicConfig(filename=self.log_file, level=logging.INFO, filemode='w',format='%(levelname)s - %(message)s')
 
         self.shutdown_event = multiprocessing.Event()  # Event to signal shutdown
         self.keyboard_listener = None  # Store the keyboard listener object
@@ -92,7 +92,9 @@ class LoadBalancer(object):
             while True:
                 # il loadBalancer riceve i dati dal client
                 data = client_socket.recv(4096)
+                time.sleep(0.20)
                 message = data.decode("utf-8")
+                print(message)
                 if message.strip() == "exit":  # strips leva gli spazi bianchi
                     print(f'{client_socket.getpeername()} si sta disconnettendo dal loadbalancer')
                     # funzione che mette il log di disconnessione nel file loadbalancer.log al loadbalancer

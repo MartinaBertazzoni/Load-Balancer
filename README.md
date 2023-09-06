@@ -94,7 +94,7 @@ La funzione monitora lo stato dei server chiamando il metodo `monitoraggio_serve
 che dovrebbe controllare se i server sono attivi o meno e aggiornare i flag self.server_flags in base a questa informazione.
 
 
-Il metodo sceglie il prossimo server a cui inoltrare la richiesta nell'ordine circolare: Inizia dal primo server nell'elenco e prosegue fino all'ultimo, quindi torna indietro e riparte dal server di partenza.
+Monitorato lo stato dei server, il metodo sceglie il prossimo server a cui inoltrare la richiesta nell'ordine circolare: Inizia dal primo server nell'elenco e prosegue fino all'ultimo, quindi torna indietro e riparte dal server di partenza.
 La funzione verifica, attraverso il flag corrispondente nell'elenco `self.server_flags` se il server è considerato attivo:
 
 Se il server è attivo, viene selezionato per l'inoltro e l'indice del server corrente viene incrementato in modo che la prossima richiesta venga inoltrata al server successivo nell'ordine circolare.

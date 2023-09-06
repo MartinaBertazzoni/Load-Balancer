@@ -63,6 +63,9 @@ Affichè il load balancer sia in ascolto per connessioni in arrivo dai client, �
 
 In seguito, sono stati definiti alcuni metodi:
 
+
+
+
 Il metodo `monitor_keyboard_input`, che utilizza il modulo `pynput.keyboard`, è responsabile per la gestione dell'input da tastiera e, in particolare, per la rilevazione della pressione del tasto "esc" per la chiusura del load balancer. Quando il tasto "esc" viene premuto, il listener chiama la funzione `handle_esc_key` che, tramite il flag `shutdown_event`, segnala al loadbalancer che è necessario iniziare la procedura di chiusura.
 
 #### Connessione: accettare e gestire le connessioni in entrata dai client.
@@ -89,8 +92,17 @@ La funzione `threading.enumerate()` viene utilizzata per ottenere l'elenco di tu
 Infine, una volta che tutti i thread sono stati chiusi e il processo di chiusura è completo, la funzione emette un messaggio di conferma, indicando che il load balancer è stato chiuso correttamente.
 
 #### Gestione della comunicazione con il client:
-La funzione `gestione_comunicazione_client` è responsabile della gestione della comunicazione con i client che si connettono al load balancer. 
+La funzione `thread_client` è responsabile della gestione dei client connessi al load balancer attraverso l'uso di thread separati. La lista `active_threads` è utilizzata per tenere traccia dei thread attivi, ossia i thread che gestiscono le connessioni dei client.
+Finchè il codice è in esecuzione, la funzione verifica se la lista `self.clients`, contiene client che sono in attesa di essere eseguiti in quanto hanno stabilito una connessione con il load balancer ma non sono ancora stati associati a un thread per la gestione delle loro richieste.
+Quindi, la funzione estrae il primo client dalla lista self.clients rimuovendolo e lo aggiunge alla lista `self.active_clients`.
 
+Viene creato un nuovo thread chiamato `client_thread` che, quando viene avviato, fa sì che ogni client connesso riceva un thread dedicato per gestire le sue richieste.
+opo aver avviato il thread per un client, la funzione continua a controllare la lista active_threads per verificare se ci sono thread che hanno completato la loro esecuzione.
+Se un thread nella lista active_threads ha completato la sua esecuzione, il thread viene rimosso dalla lista e il ciclo continua a controllare gli altri thread.
+
+Questo approccio multithreading è fondamentale per consentire al load balancer di essere reattivo e gestire più client contemporaneamente.
+
+La funzione `gestione_comunicazione_client` è responsabile della gestione della comunicazione con i client che si connettono al load balancer. 
 La funzione attende la ricezione dei comandi dal client attraverso il socket `client_socket` che, una volta ricevuti dal client, vengono memorizzati nella variabile `data` e vengono decodificati dalla rappresentazione binaria in una stringa. La funzione, quindi, verifica il comando ricevuto dal client:
 
 Se il comando è "exit", il client sta chiudendo la connessione e la funzione invia una risposta al client confermando la disconnessione, quindi elimina dalla lista dei clients attivi `active_clients` il client che si sta disconnettendo e termina il ciclo.
@@ -119,9 +131,6 @@ Se il server selezionato non è attivo, il comando viene inoltrato al server att
 
 Alla fine, il metodo restituisce l'indirizzo IP e la porta del server selezionato, che verranno utilizzati per inoltrare la richiesta del client a questo server specifico.
 
-
-
-
 #### Inoltro del messaggio dal client al server:
 La funzione `route_message` viene chiamata quando il load balancer ha ricevuto un messaggio da un client e ha bisogno di instradarlo a uno dei server disponibili.
 Scelto il server di destinazione, secondo l'algoritmo di Round Robin descritto precednetemente, la funzione crea una connessione socket verso quel server utilizzando l'indirizzo IP (`server_address`) e la porta del server (`server_port`). Il messaggio ricevuto dal client viene inoltrato al server attraverso la socket appena creata, la funzione attende una risposta dal server, che viene ricevuta tramite la socket e può contenere il risultato dell'elaborazione del comando da parte del server, e la risposta viene inviata al client originale tramite la sua connessione socket. In questo modo, il client riceve la risposta alla sua richiesta.
@@ -129,6 +138,6 @@ La connessione socket tra il load balancer e il server viene quindi chiusa.
 
 La funzione ha completato il processo di instradamento del messaggio e ritorna al loop principale del load balancer, pronto a gestire la prossima richiesta da un client.
 
-
+#### Inoltro del messaggio dal client al server:
 
 

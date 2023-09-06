@@ -63,20 +63,7 @@ Affichè il load balancer sia in ascolto per connessioni in arrivo dai client, �
 
 In seguito, sono stati definiti alcuni metodi:
 
-
-
-
 Il metodo `monitor_keyboard_input`, che utilizza il modulo `pynput.keyboard`, è responsabile per la gestione dell'input da tastiera e, in particolare, per la rilevazione della pressione del tasto "esc" per la chiusura del load balancer. Quando il tasto "esc" viene premuto, il listener chiama la funzione `handle_esc_key` che, tramite il flag `shutdown_event`, segnala al loadbalancer che è necessario iniziare la procedura di chiusura.
-
-#### Connessione: accettare e gestire le connessioni in entrata dai client.
-La funzione `connessione_client` controlla il flag `shutdown_event`, oggetto `multiprocessing.Event` utilizzato per segnalare la chiusura del load balancer. Il loadbalancer accetta continuamente le connessioni dei client finché il flag di chiusura non è impostato.
-
-E' stato impostato un timeout sulla socket del load balancer utilizzando `settimeout(1)` affinchè il loadbalancer aspetti al massimo un secondo per accettare una connessione prima di continuare l'esecuzione.
-
-Quindi, finchè il flug non viene impostato, il loadbalancer accetta le connessioni in entrata dal client: la funzione `accept` sulla socket del load balancer attende finché un client si connette e quindi restituisce la nuova socket, `client_socket`, specifica per quel client in base al suo indirizzo IP `client_ip`.
-Se una connessione viene accettata entro il timeout di 1 secondo, il client viene aggiunto alla lista `self.clients` che tiene traccia dei client connessi e viene stampato un messaggio sulla console per segnalare la connessione accettata, mostrando l'indirizzo IP e la porta del client.
-
-La lista dei client connessi (`self.clients`) consente al load balancer di gestire simultaneamente più client, aspettando che si connettano e poi aggiungendoli alla lista per l'elaborazione futura delle loro richieste.
 
 #### Arresto: chiusura del load balancer in modo controllato.
 La funzione `shutdown` assicura che tutte le connessioni siano chiuse in modo pulito e che tutte le attività in corso siano terminate prima che il programma del load balancer venga terminato. Questo contribuisce a evitare problemi di perdita di dati o connessioni incomplete durante la chiusura del load balancer.
@@ -91,8 +78,24 @@ La funzione `threading.enumerate()` viene utilizzata per ottenere l'elenco di tu
 
 Infine, una volta che tutti i thread sono stati chiusi e il processo di chiusura è completo, la funzione emette un messaggio di conferma, indicando che il load balancer è stato chiuso correttamente.
 
-#### Gestione della comunicazione con il client:
+#### Connessione tra loadbalancer e server
+Con la funzione `creazione_socket_loadBalancer`, viene creata una socket server di tipo TCP, che viene collegata all'indirizzo (`self.ip`) e alla posta (`self.porta`) specificati.
+Una volta configurata la socket, viene chiamato il metodo `listen()` su di essa. Questo metodo mette effettivamente in ascolto la socket, permettendo al load balancer di accettare le connessioni in entrata dai client.
+Viene visualizzato un messaggio di log che indica che il server di load balancing è in ascolto su un certo indirizzo e porta e vengono avviati due thread separati:
+
+##### 1) Connessione: accettare e gestire le connessioni in entrata dai client.
+La funzione `connessione_client` controlla il flag `shutdown_event`, oggetto `multiprocessing.Event` utilizzato per segnalare la chiusura del load balancer. Il loadbalancer accetta continuamente le connessioni dei client finché il flag di chiusura non è impostato.
+
+E' stato impostato un timeout sulla socket del load balancer utilizzando `settimeout(1)` affinchè il loadbalancer aspetti al massimo un secondo per accettare una connessione prima di continuare l'esecuzione.
+
+Quindi, finchè il flug non viene impostato, il loadbalancer accetta le connessioni in entrata dal client: la funzione `accept` sulla socket del load balancer attende finché un client si connette e quindi restituisce la nuova socket, `client_socket`, specifica per quel client in base al suo indirizzo IP `client_ip`.
+Se una connessione viene accettata entro il timeout di 1 secondo, il client viene aggiunto alla lista `self.clients` che tiene traccia dei client connessi e viene stampato un messaggio sulla console per segnalare la connessione accettata, mostrando l'indirizzo IP e la porta del client.
+
+La lista dei client connessi (`self.clients`) consente al load balancer di gestire simultaneamente più client, aspettando che si connettano e poi aggiungendoli alla lista per l'elaborazione futura delle loro richieste.
+
+##### 2) Gestione della comunicazione con il client:
 La funzione `thread_client` è responsabile della gestione dei client connessi al load balancer attraverso l'uso di thread separati. La lista `active_threads` è utilizzata per tenere traccia dei thread attivi, ossia i thread che gestiscono le connessioni dei client.
+
 Finchè il codice è in esecuzione, la funzione verifica se la lista `self.clients`, contiene client che sono in attesa di essere eseguiti in quanto hanno stabilito una connessione con il load balancer ma non sono ancora stati associati a un thread per la gestione delle loro richieste.
 Quindi, la funzione estrae il primo client dalla lista self.clients rimuovendolo e lo aggiunge alla lista `self.active_clients`.
 
@@ -137,7 +140,3 @@ Scelto il server di destinazione, secondo l'algoritmo di Round Robin descritto p
 La connessione socket tra il load balancer e il server viene quindi chiusa.
 
 La funzione ha completato il processo di instradamento del messaggio e ritorna al loop principale del load balancer, pronto a gestire la prossima richiesta da un client.
-
-#### Inoltro del messaggio dal client al server:
-
-

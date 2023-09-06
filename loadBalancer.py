@@ -22,7 +22,7 @@ class LoadBalancer(object):
 
         
         # porta in cui si mette in ascolto il server
-        self.port = 60004
+        self.port = 60002
         self.ip = '127.0.0.1'
         # lista che tiene  conto dei client collegati con il loadBalancer
         self.clients = []

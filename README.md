@@ -16,13 +16,23 @@ Il load balancer tiene inoltre traccia delle attività di ogni sessione; in part
 Abbiamo 6 file: `client.py`, `loadBalancer.py`, `server1.py`, `server2.py`, `server3.py` e `loadbalancer.log`. 
 
 ### Client:
-Il file `client.py` contiene la classe `client` con tutti i metodi per consentire la comunicazione delle richieste e delle rispettive risposte con il load balancer. La funzione `avvio client` avvia e chiude tre thread:
-        1.interfaccia che prende da input i comandi che devono essere eseguiti
-        2.thread che invia i comandi al load balancer
-        3.thread che rimane in ascolto per ricevere le risposte delle richieste inviate
-#### Interfaccia:
+Il file `client.py` contiene la classe `client` con tutti i metodi per consentire la comunicazione delle richieste e delle rispettive risposte con il load balancer.
+#### Connessione al load balancer:
+Con la funzione `connessione_al_loadbalancer` si ha la connessione del client al load balancer tramite una socket TCP. Nello specifico, viene impostato l'indirizzo IP del load balancer (`loadBalancer_ip`) e la porta su cui il load balancer è in ascolto (`loadBalancer_port`) per creare una nuova istanza di socket TCP/IP per il client (`socket.socket(socket.AF_INET, socket.SOCK_STREAM)`) e il client utilizza il metodo `connect` per stabilire una connessione con il load balancer specificando l'indirizzo IP e la porta del load balancer come argomenti.
+Se la connessione ha successo, viene stampato un messaggio di conferma e la funzione restituisce la socket del client connesso al load balancer.
+In caso di errore durante la connessione, viene stampato un messaggio di errore e il programma viene chiuso.
+
+La socket del client connesso verrà utilizzata per inviare i comandi al load balancer e ricevere le risposte.
+
+#### Avvio del client:
+La funzione `avvio client` avvia e chiude tre thread:                                                  
+ 
+                                                                                                                                                            
+
+#### 1) Interfaccia: prende in imput  i comandi che devono essere eseguiti.
 Con il metodo  `interfaccia_client` viene avviata un'interfaccia utente che permette agli utenti di inserire comandi manualmente o , digitando "random", generare comandi casuali (`crea_comando_random()`) e, in tal caso, comunicare il numero di richieste randomiche che devono essere create. Digitando "exit" sull'interfaccia, si ha la chiusura della connessione con il server.
 
 Questi comandi vengono aggiunti alla lista di comandi da eseguire `self.comandi`.
-#### Interfaccia:
 
+2.thread che invia i comandi al load balancer
+ 3.thread che rimane in ascolto per ricevere le risposte delle richieste inviate

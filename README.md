@@ -66,7 +66,15 @@ In seguito, sono stati definiti alcuni metodi:
 Il metodo `monitor_keyboard_input`, che utilizza il modulo `pynput.keyboard`, è responsabile per la gestione dell'input da tastiera e, in particolare, per la rilevazione della pressione del tasto "esc" per la chiusura del load balancer. Quando il tasto "esc" viene premuto, il listener chiama la funzione `handle_esc_key` che, tramite il flag `shutdown_event`, segnala al loadbalancer che è necessario iniziare la procedura di chiusura.
 
 #### Gestione della comunicazione con il client:
-La funzione `gestione_comunicazione_client` è responsabile della gestione della comunicazione con i client che si connettono al load balancer. Viene chiamata con due argomenti:
+La funzione `gestione_comunicazione_client` è responsabile della gestione della comunicazione con i client che si connettono al load balancer. 
+
+La funzione attende la ricezione dei comandi dal client attraverso il socket `client_socket` che, una volta ricevuti dal client, vengono memorizzati nella variabile `data` e vengono decodificati dalla rappresentazione binaria in una stringa. La funzione, quindi, verifica il comando ricevuto dal client:
+
+Se il comando è "exit", il client sta chiudendo la connessione e la funzione invia una risposta al client confermando la disconnessione, quindi elimina dalla lista dei clients attivi `active_clients` il client che si sta disconnettendo e termina il ciclo.
+
+Se il comando ricevuto non è "exit", il load balancer stampa il messaggio che ha ricevuto dal client. L'esecuzione del comando viene svolta dalla funzione `esegui_comandi`.
+
+...
 
 
 #### Connessione: accettare e gestire le connessioni in entrata dai client.

@@ -41,4 +41,15 @@ Se il comando non è "exit", invia il comando al load balancer tramite la connes
 Dopo l'invio del comando, la funzione continua ad attendere nuovi comandi da inviare. 
 La funzione continua ad eseguire questo ciclo fino a quando il client non decide di chiudere la connessione.
 
-##### 3) Ricezione delle risposte dai server.
+##### 3) Ricezione delle risposte dai server:
+La funzione `ricezione_risposta` verifica due condizioni: 
+ 
+Se `self.counter_richieste`, che indica il numero di richieste inviate, è inferiore o uguale a zero, tutte le richieste sono state elaborate e il client può chiudere la connessione con il server interrompendo il loop.
+
+Se la flag `self.chiusura` è impostata su True, il client sta richiedendo la chiusura della connessione e il loop si interrompe anche in questo caso.
+
+Se nessuna delle due condizioni è verificata, il client rimane in attesa di ricevere una risposta dal server tramite la connessione socket.
+La risposta ricevuta dal server viene quindi stampata e il numero di richieste rimanenti viene decrementato di uno.
+
+Quando si verificano le condizioni di uscita, la connessione con il server viene chiusa.
+

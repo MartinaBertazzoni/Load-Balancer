@@ -4,6 +4,7 @@ import socket
 import threading
 import random
 
+
 # commento per provare i commit
 
 class server(object):
@@ -86,10 +87,7 @@ class server(object):
             risultato=A*B
         if comando == "divisione":
             risultato=A/B
-        soluzione={'A':A,
-                   'B':B,
-                   'operazione': comando,
-                   'risultato': risultato}
+        soluzione=f"Il risultato dell'operazione {comando} fra {A} e {B} è {risultato}"
         return soluzione
         
 

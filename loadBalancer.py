@@ -7,6 +7,7 @@ import logging
 from pynput import keyboard  # Import pynput library
 import sys
 import multiprocessing
+import time
 
 # commento per testare il commit
 
@@ -21,7 +22,7 @@ class LoadBalancer(object):
 
         
         # porta in cui si mette in ascolto il server
-        self.port = 60002
+        self.port = 60004
         self.ip = '127.0.0.1'
         # lista che tiene  conto dei client collegati con il loadBalancer
         self.clients = []
@@ -153,6 +154,7 @@ class LoadBalancer(object):
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server_socket.connect((server_address, server_port))
             server_socket.sendall(data)
+            time.sleep(0.20)
             response = server_socket.recv(1024)
             server_socket.close()
             client_socket.send(response)

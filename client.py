@@ -56,7 +56,7 @@ class client(object):
             # client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # connetto il client con il loadBalancer
             # client_socket.connect((loadBalancer_ip, loadBalancer_port))
-            client_socket.connect(("127.0.0.1", 60002))
+            client_socket.connect(("127.0.0.1", 60004))
 
             print(f"Connessione al server {loadBalancer_ip}:{loadBalancer_port} stabilita.")
             # DEVO RICHIAMARE COME FUNZIONE L'INTERFACCIA_CON_LOADBALANCER()
@@ -73,6 +73,7 @@ class client(object):
         Funzione che simula una interfaccia che richiede i comandi da svolgere
         """
         while True:
+            time.sleep(1)
             #richiede il comando da terminale 
             comando = input(" Digita il comando:  ")
             #inserisco il comando dentro la lista dei comandi da svolgere
@@ -85,6 +86,7 @@ class client(object):
                     self.comandi.append(richiesta)
                 print(self.comandi)
             else:
+                self.interfaccia_client()
                 self.comandi.append(comando)
             if comando == 'exit':
                 self.comandi.append(comando)

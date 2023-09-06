@@ -85,10 +85,7 @@ class server(object):
             risultato=A*B
         if comando == "divisione":
             risultato=A/B
-        soluzione={'A':A,
-                   'B':B,
-                   'operazione': comando,
-                   'risultato': risultato}
+        soluzione= f"Il risultato dell'operazione {comando} fra {A} e {B} è {risultato}"
         return soluzione
 
     # MANCA L'ATTRIBUTO CHE INVIA LA SOLUZIONE DEI COMANDI AL CLIENT

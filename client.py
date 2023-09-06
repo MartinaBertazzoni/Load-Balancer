@@ -56,7 +56,7 @@ class client(object):
             # client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # connetto il client con il loadBalancer
             # client_socket.connect((loadBalancer_ip, loadBalancer_port))
-            client_socket.connect(("127.0.0.1", 60002))
+            client_socket.connect(("127.0.0.1", 60001))
 
             print(f"Connessione al server {loadBalancer_ip}:{loadBalancer_port} stabilita.")
             # DEVO RICHIAMARE COME FUNZIONE L'INTERFACCIA_CON_LOADBALANCER()
@@ -106,7 +106,6 @@ class client(object):
         try:
             while True:
                 # controllo se la lista dei comandi è vuota, se lo è assegno il comandi 'continua' che fa scorrere continuamente il thread
-
                 if len(self.comandi) != 0:
                     # assegno il primo comando
                     comando = self.comandi[0]

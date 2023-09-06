@@ -16,7 +16,6 @@ class server(object):
 
 
 
-
     def socket_server(self):
         """
         Funzione che crea la socket del server e crea un thread che rimane in ascolto per ricevere i comandi dal load balancer

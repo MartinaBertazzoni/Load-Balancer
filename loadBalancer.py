@@ -19,7 +19,7 @@ class LoadBalancer(object):
 
         
         # porta in cui si mette in ascolto il server
-        self.port = 60002
+        self.port = 60001
         self.ip = '127.0.0.1'
         # lista che tiene  conto dei client collegati con il loadBalancer
         self.clients = []
@@ -47,7 +47,8 @@ class LoadBalancer(object):
         with keyboard.Listener(on_press=self.handle_esc_key) as self.keyboard_listener:
             while not self.shutdown_event.is_set():
                 pass
-                
+
+
 
     def handle_esc_key(self, key):
         if key == keyboard.Key.esc:

@@ -53,8 +53,22 @@ Se `self.counter_richieste`, che indica il numero di richieste inviate, è infer
 
 Se la flag `self.chiusura` è impostata su True, il client sta richiedendo la chiusura della connessione e il loop si interrompe anche in questo caso.
 
+### Loadbalancer:
+
 Se nessuna delle due condizioni è verificata, il client rimane in attesa di ricevere una risposta dal server tramite la connessione socket.
 La risposta ricevuta dal server viene quindi stampata e il numero di richieste rimanenti viene decrementato di uno.
 
 Quando si verificano le condizioni di uscita, la connessione con il server viene chiusa.
 
+### Loadbalancer:
+Affichè il load balancer sia in ascolto per connessioni in arrivo dai client, è stata impostata la porta `self.port` ed è stato specificato l'indirizzo IP `self.ip`(127.0.0.1 per l'ascolto locale).
+
+#### Avvio del loadbalancer:
+
+#### Connessione: accettare e gestire le connessioni in entrata dai client.
+La funzione `connessione_client` controlla il flag `shutdown_event`, oggetto `multiprocessing.Event` utilizzato per segnalare la chiusura del load balancer. Il loadbalancer accetta continuamente le connessioni dei client finché il flag di chiusura non è impostato.
+
+E' stato impostato un timeout sulla socket del load balancer utilizzando `settimeout(1)` affinchè il loadbalancer aspetti al massimo un secondo per accettare una connessione prima di continuare l'esecuzione.
+
+Quindi, finchè il flug non viene impostato, il loadbalancer accetta le connessioni in entrata dal client: la funzione `accept` sulla socket del load balancer attende finché un client si connette e quindi restituisce la nuova socket, `client_socket`, specifica per quel client in base al suo indirizzo IP `client_ip`.
+Se una connessione viene accettata entro il timeout di 1 secondo, il client viene aggiunto alla lista `self.clients` che tiene traccia dei client connessi e viene stampato un messaggio sulla console per segnalare la connessione accettata, mostrando l'indirizzo IP e la porta del client.

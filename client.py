@@ -56,7 +56,7 @@ class client(object):
             # client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # connetto il client con il loadBalancer
             # client_socket.connect((loadBalancer_ip, loadBalancer_port))
-            client_socket.connect(("127.0.0.1", 60001))
+            client_socket.connect(("127.0.0.1", 60002))
 
             print(f"Connessione al server {loadBalancer_ip}:{loadBalancer_port} stabilita.")
             # DEVO RICHIAMARE COME FUNZIONE L'INTERFACCIA_CON_LOADBALANCER()

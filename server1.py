@@ -98,5 +98,3 @@ class server(object):
 if __name__ == "__main__":
     server = server()
     server.socket_server()
-
-

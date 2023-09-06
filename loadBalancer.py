@@ -278,6 +278,3 @@ if __name__ == '__main__':
         if load_balancer.shutdown_event.is_set():
             load_balancer.shutdown()
             break
-    
-
-    

@@ -91,3 +91,117 @@ INFO - Inoltro richiesta del Client ('127.0.0.1', 58873) al server 127.0.0.1:500
 INFO - Client connesso: ('127.0.0.1', 59070)
 INFO - Richiesta ricevuta dal Client ('127.0.0.1', 59070):sottrazione
 INFO - Inoltro richiesta del Client ('127.0.0.1', 59070) al server 127.0.0.1:5007
+INFO - Client connesso: ('127.0.0.1', 54845)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 54845):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 54845) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 54845):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 54845) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 54845):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 54845) al server 127.0.0.1:5009
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 54845):divisione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 54845) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 54845):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 54845) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 54845):divisione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 54845) al server 127.0.0.1:5007
+INFO - Client connesso: ('127.0.0.1', 55201)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 55201):divisione
+INFO - Client connesso: ('127.0.0.1', 55586)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 55586):divisione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 55586) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 55586):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 55586) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 55586):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 55586) al server 127.0.0.1:5009
+INFO - Client connesso: ('127.0.0.1', 55926)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 55926):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 55926) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 55926):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 55926) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 55926):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 55926) al server 127.0.0.1:5009
+INFO - Client connesso: ('127.0.0.1', 56290)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56290):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56290) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56290):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56290) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56290):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56290) al server 127.0.0.1:5009
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56290):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56290) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56290):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56290) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56290):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56290) al server 127.0.0.1:5009
+INFO - Client connesso: ('127.0.0.1', 56519)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56519):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56519) al server 127.0.0.1:5007
+INFO - Client connesso: ('127.0.0.1', 56712)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56712):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56712) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56712):somma
+INFO - Client connesso: ('127.0.0.1', 56906)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56906):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56906) al server 127.0.0.1:5007
+INFO - Client connesso: ('127.0.0.1', 57168)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 57168):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 57168) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 57168):sommasomma
+INFO - Client connesso: ('127.0.0.1', 57354)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 57354):divisione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 57354) al server 127.0.0.1:5007
+INFO - Client connesso: ('127.0.0.1', 57554)
+INFO - Client connesso: ('127.0.0.1', 57825)
+INFO - Client connesso: ('127.0.0.1', 58019)
+INFO - Client connesso: ('127.0.0.1', 58188)
+INFO - Client connesso: ('127.0.0.1', 58399)
+INFO - Client connesso: ('127.0.0.1', 58586)
+INFO - Client connesso: ('127.0.0.1', 58781)
+INFO - Client connesso: ('127.0.0.1', 58978)
+INFO - Client connesso: ('127.0.0.1', 59160)
+INFO - Client connesso: ('127.0.0.1', 59334)
+INFO - Client connesso: ('127.0.0.1', 59591)
+INFO - Client connesso: ('127.0.0.1', 60199)
+INFO - Client connesso: ('127.0.0.1', 60395)
+INFO - Client connesso: ('127.0.0.1', 60710)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 60710):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 60710) al server 127.0.0.1:5010
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 60710):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 60710) al server 127.0.0.1:5011
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 60710):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 60710) al server 127.0.0.1:5012
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 60710):divisione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 60710) al server 127.0.0.1:5010
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 60710):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 60710) al server 127.0.0.1:5011
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 60710):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 60710) al server 127.0.0.1:5010
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 60710):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 60710) al server 127.0.0.1:5011
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 60710):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 60710) al server 127.0.0.1:5012
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 60710):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 60710) al server 127.0.0.1:5010
+INFO - Client connesso: ('127.0.0.1', 61025)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 61025):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 61025) al server 127.0.0.1:5010
+INFO - Client connesso: ('127.0.0.1', 56531)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56531):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56531) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56531):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56531) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56531):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56531) al server 127.0.0.1:5009
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56531):2
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56531) al server 127.0.0.1:5007
+INFO - Client connesso: ('127.0.0.1', 56870)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56870):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56870) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56870):divisione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56870) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56870):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56870) al server 127.0.0.1:5009
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56870):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56870) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 56870):divisionesomma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 56870) al server 127.0.0.1:5008

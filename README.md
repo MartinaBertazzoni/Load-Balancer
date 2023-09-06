@@ -140,3 +140,40 @@ Scelto il server di destinazione, secondo l'algoritmo di Round Robin descritto p
 La connessione socket tra il load balancer e il server viene quindi chiusa.
 
 La funzione ha completato il processo di instradamento del messaggio e ritorna al loop principale del load balancer, pronto a gestire la prossima richiesta da un client.
+
+### Server
+#### Connessione:
+La funzione `socket_server` è responsabile per la creazione della socket TCP del server e l'avvio di un thread separato che rimarrà in ascolto per ricevere i comandi dal load balancer.
+Creata la socket, il server la collega a un indirizzo IP e una porta specifici utilizzando il metodo `bind`.
+Dopo aver effettuato il binding della socket, il server la mette in ascolto, utilizzando il metodo `listen`, così che sia pronto ad accettare le connessioni in arrivo dai client sulla porta specificata.
+
+Successivamente, la funzione crea un thread separato chiamato `thread_gestione_client`, responsabile di rimanere in ascolto per le richieste provenienti dal load balancer e gestirle.
+Quando il thread viene avviato, esegue il codice nel metodo `self.gestione_client`e, con il metodo il metodo `start()`, l'esecuzuione avviene in parallelo al thread principale del server.
+Una volta avviato il thread di ascolto, la funzione socket_server termina.
+
+##### Gestione del client:
+La funzione `gestione_client` accetta le connessioni dei client e avvia un thread separato per gestire ciascun client.
+
+La funzione è in attesa di accettare una connessione in entrata da un client tramite `server_socket.accept()`e, quando una connessione viene accettata, restituisce una nuova socket `client_socket` e l'indirizzo IP del client `client_ip`.
+
+Accettata una connessione da un client , la funzione avvia un nuovo thread responsabile di gestire tutte le comunicazioni tra il server e il client specifico.
+Il thread viene creato utilizzando la funzione `richieste_client`.
+
+##### Gestione delle richieste: 
+La funzione `richieste_client` gestisce la comunicazione tra il server e il client: riceve comandi dal client tramite il `client_socket`, li elabora eseguendoli e invia le risposte al client.
+
+Ricevuta le richiesta, viene effettuato un controllo per verificare la ricezione dei dati . Se non sono stati ricevuti comandi nuovi, la funzione esce dal ciclo e termina.
+Una volta ricevuto un comando dal client, la funzione lo decodifica e procede ad elaborarlo.
+La funzione chiama il metodo `esegui_comandi` per eseguire il comando ricevuto e memorizza il risultato dell'elaborazione in una variabile `risultato`.
+Il risultato viene convertito in una stringa ed inviato al client utilizzando il metodo `sendall()` del client_socket. 
+La funzione continua a rimanere in attesa di ulteriori comandi dallo stesso client fintanto che la connessione non viene chiusa dal client o dal server (client o server).
+
+##### Esecuzione dei comandi:
+La funzione `esegui_comandi` genera A e B, numeri interi generati casualmente tra 1 e 50, esegue un'operazione matematica specificata dal comando ricevuto dal client ("somma", "sottrazione", "moltiplicazione" o "divisione") e restituisce un dizionario che contiene i valori di `A`, `B`, il comando (`operazione`) e il `risultato` dell'operazione.
+Il dizionario creato viene restituito come risultato della funzione. 
+
+Dopo aver avviato il thread per gestire il client corrente, utilizzando la funzione `richieste_client`, la funzione torna indietro e continua ad ascoltare nuove connessioni dai client.
+Poiché ogni client ha il proprio thread dedicato, il server può gestire più client contemporaneamente.
+
+Quando un client si disconnette o viene chiusa la connessione con il client, il thread termina.
+Questo ciclo di ascolto e gestione dei client continua fino a quando il server è in esecuzione.

@@ -24,6 +24,11 @@ In caso di errore durante la connessione, viene stampato un messaggio di errore 
 
 La socket del client connesso verrà utilizzata per inviare i comandi al load balancer e ricevere le risposte.
 
+#### Creazione del comando random:
+La funzione `crea_comando_random` utilizza la funzione `random.choice()` del modulo random di Python per selezionare casualmente uno dei quattro comandi della lista `comandi_possibili`: "somma," "sottrazione," "moltiplicazione," o "divisione".
+
+Il comando selezionato casualmente è memorizzato nella variabile `comando_casuale` e può essere successivamente inviato al load balancer per l'elaborazione del server disponibile.
+
 #### Avvio del client:
 La funzione `avvio client` avvia e chiude tre thread:                                                
 ##### 1) Interfaccia: prende in imput  i comandi che devono essere eseguiti.

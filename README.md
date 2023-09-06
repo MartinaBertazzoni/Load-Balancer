@@ -25,14 +25,20 @@ In caso di errore durante la connessione, viene stampato un messaggio di errore 
 La socket del client connesso verrà utilizzata per inviare i comandi al load balancer e ricevere le risposte.
 
 #### Avvio del client:
-La funzione `avvio client` avvia e chiude tre thread:                                                  
- 
-                                                                                                                                                            
-
-#### 1) Interfaccia: prende in imput  i comandi che devono essere eseguiti.
+La funzione `avvio client` avvia e chiude tre thread:                                                
+##### 1) Interfaccia: prende in imput  i comandi che devono essere eseguiti.
 Con il metodo  `interfaccia_client` viene avviata un'interfaccia utente che permette agli utenti di inserire comandi manualmente o , digitando "random", generare comandi casuali (`crea_comando_random()`) e, in tal caso, comunicare il numero di richieste randomiche che devono essere create. Digitando "exit" sull'interfaccia, si ha la chiusura della connessione con il server.
-
 Questi comandi vengono aggiunti alla lista di comandi da eseguire `self.comandi`.
 
-2.thread che invia i comandi al load balancer
- 3.thread che rimane in ascolto per ricevere le risposte delle richieste inviate
+##### 2) Invio dei comandi al load balancer.
+ La funzione `invia_richieste_al_loadbalancer` controlla se la lista `self.comandi` contiene comandi da inviare: Se la lista è vuota, continua a scorrere il thread senza inviare nulla.
+Se ci sono comandi nella lista, estrae il primo comando e lo assegna alla variabile `comando`.
+
+Se il comando è "exit", imposta la flag `self.chiusura` su True per segnalare che il client sta chiudendo la connessione, invia il comando "exit" al load balancer tramite la connessione socket, incrementa il contatore `self.counter_richieste` per tener traccia delle richieste inviate e stampa un messaggio di chiusura della connessione con il server.
+
+Se il comando non è "exit", invia il comando al load balancer tramite la connessione socket e incrementa il contatore `self.counter_richieste` per tener traccia delle richieste inviate.
+
+Dopo l'invio del comando, la funzione continua ad attendere nuovi comandi da inviare. 
+La funzione continua ad eseguire questo ciclo fino a quando il client non decide di chiudere la connessione.
+
+##### 3) Ricezione delle risposte dai server.

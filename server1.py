@@ -90,7 +90,6 @@ class server(object):
                    'operazione': comando,
                    'risultato': risultato}
         return soluzione
-        
 
     # MANCA L'ATTRIBUTO CHE INVIA LA SOLUZIONE DEI COMANDI AL CLIENT
 

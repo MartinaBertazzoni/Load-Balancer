@@ -85,6 +85,7 @@ class client(object):
                 #self.comandi.pop(0)
                 num_richieste = int(input("Digita il numero di richieste randomiche da creare:  "))
                 for numero in range(num_richieste):
+
                     richiesta_input= self.crea_comando_random()
                     richiesta = '/' + richiesta_input
                     print(richiesta)
@@ -93,7 +94,6 @@ class client(object):
             else:
                 self.interfaccia_client()
                 self.comandi.append(comando)
-
 
             
             
@@ -114,6 +114,7 @@ class client(object):
                     # assegno il primo comando
                     comando = self.comandi[0]
                     self.comandi.pop(0)
+                    print(comando, self.comandi)
                 else:
                     comando="continue"
                 # se il comando è exit si manda il messaggio di chiusura al loadbalancer

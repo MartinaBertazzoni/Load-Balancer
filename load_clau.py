@@ -22,7 +22,7 @@ class LoadBalancer(object):
         """
 
         # porta in cui si mette in ascolto il server
-        self.port = 60007
+        self.port = 60006
         self.ip = '127.0.0.1'
         # lista che tiene  conto dei client collegati con il loadBalancer
         self.clients = []
@@ -32,7 +32,7 @@ class LoadBalancer(object):
         quest'ultimo inivii la richiesta al loadbalancer di ricevere nuovamente i compiti"""
         self.richieste = {}  # la chiave è ip del client, argomento nome richieste
         self.servers = ["127.0.0.1", "127.0.0.1", "127.0.0.1"]
-        self.port_server = [5010, 5002, 5004]
+        self.port_server = [5007, 5008, 5011]
         self.current_server_index = 0
         self.current_server_port_index = 0
         self.server_flags = [False] * len(self.servers)
@@ -158,6 +158,7 @@ class LoadBalancer(object):
             server_socket.sendall(data)
             response = server_socket.recv(1024)
             server_socket.close()
+            time.sleep(0.05)
             client_socket.send(response)
         except:
             print("C'è stato un errore")
@@ -239,7 +240,7 @@ class LoadBalancer(object):
         for i, server_address in enumerate(self.servers):
             # Qui creo una connessione con il server per verificare il suo stato
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server_socket.settimeout(2)  # Timeout per la connessione
+            server_socket.settimeout(1)  # Timeout per la connessione
             try:
                 server_socket.connect((server_address, self.port_server[i]))
                 server_socket.close()
@@ -250,7 +251,6 @@ class LoadBalancer(object):
                 # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
                 self.server_flags[i] = False
                 print("Il server", i, " è spento")
-        time.sleep(5)
 
         # Attendi un certo intervallo di tempo prima di effettuare un nuovo controllo
         # time.sleep(5)  # Controlla lo stato dei server ogni 5 secondi

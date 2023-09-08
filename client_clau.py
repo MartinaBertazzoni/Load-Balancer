@@ -57,7 +57,7 @@ class client(object):
             # client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # connetto il client con il loadBalancer
             # client_socket.connect((loadBalancer_ip, loadBalancer_port))
-            client_socket.connect(("127.0.0.1", 60007))
+            client_socket.connect(("127.0.0.1", 60006))
 
             print(f"Connessione al server {loadBalancer_ip}:{loadBalancer_port} stabilita.")
             # DEVO RICHIAMARE COME FUNZIONE L'INTERFACCIA_CON_LOADBALANCER()
@@ -157,11 +157,21 @@ class client(object):
                     break
                 else:
                     message = client_socket.recv(1024).decode("utf-8")
+                    # RICHIAMO METODO CHE SALVA I RISULTATI IN UN FILE
+                    #self.creo_file_risposta(message)
                     print(message)
                     self.counter_richieste -= 1
 
         except:
             print("Vi è stato un errore")
+
+
+
+    def creo_file_risposta(self, risultato):
+        # Apri il file in modalità scrittura
+        with open('risultati.txt', 'w') as file:
+            file.write(risultato + "\n")
+    pass
 
 
 if __name__ == "__main__":

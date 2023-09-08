@@ -75,7 +75,13 @@ class LoadBalancer(object):
         funzione che aavvia i metodi del loadbalancer, nel caso apre e chiude thread per gestire comunicazioni con client
         e server
         """
-        pass
+        self.creazione_socket_loadBalancer()
+        monitoraggio=threading.Thread(target=self.monitoraggio_server)
+        connessione = threading.Thread(target=self.connessione_client)
+        thread = threading.Thread(target=self.thread_client)
+        monitoraggio.start()
+        connessione.start()
+        thread.start()
 
     def gestione_comunicazione_client(self, client_socket):
         """
@@ -126,7 +132,7 @@ class LoadBalancer(object):
         """
         while True:
             # MONITORO LO STATO DEI SERVER PRIMA DI SCEGLIERE
-            self.monitoraggio_server()
+
             # Scegli il prossimo server nell'ordine circolare
             server_address = self.servers[self.current_server_index]
             server_port = self.port_server[self.current_server_port_index]
@@ -158,7 +164,7 @@ class LoadBalancer(object):
             server_socket.sendall(data)
             response = server_socket.recv(1024)
             server_socket.close()
-            time.sleep(0.05)
+            time.sleep(0.2)
             client_socket.send(response)
         except:
             print("C'è stato un errore")
@@ -181,10 +187,7 @@ class LoadBalancer(object):
         self.balancer_socket.bind((self.ip, self.port))
         self.balancer_socket.listen()
         print("Server di load balancing in ascolto su {}:{}".format(self.ip, self.port))
-        connessione = threading.Thread(target=self.connessione_client)
-        thread = threading.Thread(target=self.thread_client)
-        connessione.start()
-        thread.start()
+
 
     def connessione_client(self):
 
@@ -237,20 +240,20 @@ class LoadBalancer(object):
         operativo o non operativo, carico computazionale solo se troviamo funzioni che ci consentono di osservarlo) di ogni sever
         in tempi regolari
         """
-        for i, server_address in enumerate(self.servers):
-            # Qui creo una connessione con il server per verificare il suo stato
-            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server_socket.settimeout(1)  # Timeout per la connessione
-            try:
-                server_socket.connect((server_address, self.port_server[i]))
-                server_socket.close()
-                # Se la connessione riesce, il server è attivo, quindi aggiorno la flag in True
-                self.server_flags[i] = True
-                print("Il server", i, " è attivo")
-            except (socket.timeout, ConnectionRefusedError):
-                # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
-                self.server_flags[i] = False
-                print("Il server", i, " è spento")
+        while not self.shutdown_event.is_set():
+            # itera sul numero dei server i
+            for i, server_address in enumerate(self.servers):
+                # Qui creo una connessione con il server per verificare il suo stato
+                server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                server_socket.settimeout(1)  # Timeout per la connessione
+                try:
+                    server_socket.connect((server_address, self.port_server[i]))
+                    server_socket.close()
+                    # Se la connessione riesce, il server è attivo, quindi aggiorno la flag in True
+                    self.server_flags[i] = True
+                except (socket.timeout, ConnectionRefusedError):
+                    # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
+                    self.server_flags[i] = False
 
         # Attendi un certo intervallo di tempo prima di effettuare un nuovo controllo
         # time.sleep(5)  # Controlla lo stato dei server ogni 5 secondi
@@ -268,7 +271,7 @@ class LoadBalancer(object):
 
 if __name__ == '__main__':
     load_balancer = LoadBalancer()
-    load_balancer.creazione_socket_loadBalancer()
+    load_balancer.avvio_loadbalancer()
 
     load_balancer.keyboard_process.start()
 

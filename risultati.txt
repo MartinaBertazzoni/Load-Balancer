@@ -1,0 +1,7 @@
+Antonio Il risultato dell'operazione sottrazione fra 29 e 12 è 17
+Antonio Il risultato dell'operazione divisione fra 29 e 16 è 1.8125
+Antonio Il risultato dell'operazione somma fra 46 e 17 è 63
+Antonio Il risultato dell'operazione sottrazione fra 6 e 39 è -33
+Antonio Il risultato dell'operazione divisione fra 37 e 45 è 0.8222222222222222
+Antonio Il risultato dell'operazione divisione fra 15 e 4 è 3.75
+Antonio 

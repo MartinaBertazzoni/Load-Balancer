@@ -17,31 +17,30 @@ Abbiamo 6 file: `client.py`, `loadBalancer.py`, `server1.py`, `server2.py`, `ser
 
 ### Client:
 Il file `client.py` contiene la classe `client` con tutti i metodi per consentire la comunicazione delle richieste e delle rispettive risposte con il load balancer.
-#### Connessione al load balancer:
+
+#### Avvio del client:
+La funzione `avvio_client`, per prima cosa, stabilisce la connessione tra il client e il load balancer:
+##### Connessione al load balancer:
 Con la funzione `connessione_al_loadbalancer` si ha la connessione del client al load balancer tramite una socket TCP. Nello specifico, viene impostato l'indirizzo IP del load balancer (`loadBalancer_ip`) e la porta su cui il load balancer è in ascolto (`loadBalancer_port`) per creare una nuova istanza di socket TCP/IP per il client (`socket.socket(socket.AF_INET, socket.SOCK_STREAM)`) e il client utilizza il metodo `connect` per stabilire una connessione con il load balancer specificando l'indirizzo IP e la porta del load balancer come argomenti.
 Se la connessione ha successo, viene stampato un messaggio di conferma e la funzione restituisce la socket del client connesso al load balancer.
 In caso di errore durante la connessione, viene stampato un messaggio di errore e il programma viene chiuso.
 
 La socket del client connesso verrà utilizzata per inviare i comandi al load balancer e ricevere le risposte.
 
-#### Creazione del comando random:
-La funzione `crea_comando_random` utilizza la funzione `random.choice()` del modulo random di Python per selezionare casualmente uno dei quattro comandi della lista `comandi_possibili`: "somma," "sottrazione," "moltiplicazione," o "divisione".
-
-Il comando selezionato casualmente è memorizzato nella variabile `comando_casuale` e può essere successivamente inviato al load balancer per l'elaborazione del server disponibile.
-
-#### Avvio del client:
-La funzione `avvio client` avvia e chiude tre thread:                                                
+Dopo aver stabilito la connessione con il load balancer, la funzione `avvio client` avvia e chiude tre thread:                                                
 ##### 1) Interfaccia: prende in imput  i comandi che devono essere eseguiti.
-Con il metodo  `interfaccia_client` viene avviata un'interfaccia utente che permette agli utenti di inserire comandi manualmente o , digitando "random", generare comandi casuali (`crea_comando_random()`) e, in tal caso, comunicare il numero di richieste randomiche che devono essere create. Digitando "exit" sull'interfaccia, si ha la chiusura della connessione con il server.
+Con il metodo  `interfaccia_client` viene avviata un'interfaccia utente che permette agli utenti di inserire comandi manualmente. Digitando "random", vengono generati comandi casuali (richiamando la funzione `crea_comando_random()`) e, in tal caso, occorre comunicare il numero di richieste randomiche che devono essere create. Digitando "exit" sull'interfaccia, si ha la chiusura della connessione con il server.
 Questi comandi vengono aggiunti alla lista di comandi da eseguire `self.comandi`.
+
+In questa parte di codice è stata impiegata la funzione `time.sleep()` per mettere in pausa l'esecuzione del programma per un certo periodo di tempo. Infatti, in tal modo, è stato possibile sincronizzare l'esecuzione dell'operazione affinchè fosse in linea con altre parti del programma.
 
 ##### 2) Invio dei comandi al load balancer.
  La funzione `invia_richieste_al_loadbalancer` controlla se la lista `self.comandi` contiene comandi da inviare: Se la lista è vuota, continua a scorrere il thread senza inviare nulla.
 Se ci sono comandi nella lista, estrae il primo comando e lo assegna alla variabile `comando`.
 
-Se il comando è "exit", imposta la flag `self.chiusura` su True per segnalare che il client sta chiudendo la connessione, invia il comando "exit" al load balancer tramite la connessione socket, incrementa il contatore `self.counter_richieste` per tener traccia delle richieste inviate e stampa un messaggio di chiusura della connessione con il server.
+Se il comando è "exit", imposta la flag `self.chiusura` su True per segnalare che il client sta chiudendo la connessione, converte il comando "exit" in una stringa di byte e lo invia al load balancer tramite la connessione socket, incrementa il contatore `self.counter_richieste` per tener traccia delle richieste inviate e stampa un messaggio di chiusura della connessione con il server.
 
-Se il comando non è "exit", invia il comando al load balancer tramite la connessione socket e incrementa il contatore `self.counter_richieste` per tener traccia delle richieste inviate.
+Se il comando non è "exit", invia il comando, convertito in una stringa di byte, al load balancer tramite la connessione socket e incrementa il contatore `self.counter_richieste` per tener traccia delle richieste inviate.
 
 Dopo l'invio del comando, la funzione continua ad attendere nuovi comandi da inviare. 
 La funzione continua ad eseguire questo ciclo fino a quando il client non decide di chiudere la connessione.
@@ -51,12 +50,15 @@ La funzione `ricezione_risposta` verifica due condizioni:
  
 Se `self.counter_richieste`, che indica il numero di richieste inviate, è inferiore o uguale a zero, tutte le richieste sono state elaborate e il client può chiudere la connessione con il server interrompendo il loop.
 
-Se la flag `self.chiusura` è impostata su True, il client sta richiedendo la chiusura della connessione e il loop si interrompe anche in questo caso.
+Se la flag `self.chiusura` è impostata su True, il client sta richiedendo la chiusura della connessione tramite il comando "exit" e il loop si interrompe anche in questo caso.
 
 Se nessuna delle due condizioni è verificata, il client rimane in attesa di ricevere una risposta dal server tramite la connessione socket.
-La risposta ricevuta dal server viene quindi stampata e il numero di richieste rimanenti viene decrementato di uno.
+La risposta ricevuta dal server viene quindi decodificata e stampata e il numero di richieste rimanenti viene decrementato di uno.
 
-Quando si verificano le condizioni di uscita, la connessione con il server viene chiusa.
+#### Creazione del comando random:
+La funzione `crea_comando_random` utilizza la funzione `random.choice()` del modulo random di Python per selezionare casualmente uno dei quattro comandi della lista `comandi_possibili`: "somma," "sottrazione," "moltiplicazione," o "divisione".
+
+Il comando selezionato casualmente è memorizzato nella variabile `comando_casuale` e può essere successivamente inviato al load balancer per l'elaborazione del server disponibile.
 
 ### Loadbalancer:
 Affichè il load balancer sia in ascolto per connessioni in arrivo dai client, è stata impostata la porta `self.port` ed è stato specificato l'indirizzo IP `self.ip`(127.0.0.1 per l'ascolto locale).

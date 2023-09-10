@@ -2,7 +2,7 @@ import sys
 import socket
 import random
 import threading
-import time
+import os
 
 
 # commento per provare il commit
@@ -21,6 +21,8 @@ class client(object):
         self.counter_richieste = 0
         # flag che mi dice se chiudere il socket
         self.chiusura = False
+        self.name_client=None
+        self.file_path_risultati="./risultati.txt"
 
     def avvio_client(self):
         """
@@ -29,6 +31,12 @@ class client(object):
         2.thread che invia i comandi al load balancer
         3.thread che rimane in ascolto per ricevere le risposte delle richieste inviate
         """
+        # controllo se il file dei risultati esiste; se non è esiste, lo creo
+        self.verifica_e_crea_file()
+        # controllo se il file dei risultati è vuoto; se no, lo svuoto
+        if not self.is_file_empty():
+            self.svuota_file()
+        self.name_client=input("Inserisci il nome del Client connesso: ")
         client_socket = self.connessione_al_loadbalancer()
         interfaccia = threading.Thread(target=self.interfaccia_client)
         invio_richieste = threading.Thread(target=self.invia_richieste_al_loadbalancer, args=(client_socket,))
@@ -158,20 +166,44 @@ class client(object):
                 else:
                     message = client_socket.recv(1024).decode("utf-8")
                     # RICHIAMO METODO CHE SALVA I RISULTATI IN UN FILE
-                    #self.creo_file_risposta(message)
+                    self.creo_file_risposta(message)
                     print(message)
                     self.counter_richieste -= 1
-
         except:
             print("Vi è stato un errore")
 
 
 
     def creo_file_risposta(self, risultato):
-        # Apri il file in modalità scrittura
-        with open('risultati.txt', 'w') as file:
-            file.write(risultato + "\n")
-    pass
+        """
+        Creo un file con le risposte di tutte le richieste
+
+        :param risultato:
+        :return:
+        """
+        with open('risultati.txt', 'a') as file:
+            file.write(self.name_client + " " + risultato + "\n")
+
+    def is_file_empty(self):
+        """ Metodo che verifica se il contenuto del file è vuoto
+            restituirà la dimensione del file in byte. Se il file è vuoto, la dimensione
+            sarà 0, quindi la funzione is_file_empty restituirà True.
+            Altrimenti, se il file ha del contenuto, restituirà False."""
+        return os.path.getsize(self.file_path_risultati) == 0
+
+    def svuota_file(self):
+        """
+        Metodo che elimina il contenuto del file
+        return: None
+        """
+        with open(self.file_path_risultati, 'w') as file:
+            pass
+
+    def verifica_e_crea_file(self):
+        if not os.path.exists(self.file_path_risultati):
+            # Se il file non esiste, crealo
+            with open(self.file_path_risultati, 'w') as file:
+                pass
 
 
 if __name__ == "__main__":

@@ -5,9 +5,6 @@ import threading
 import time
 
 
-# commento per provare il commit
-
-
 # creata la classe client per far accedere i thread agli attributi
 class client(object):
 
@@ -33,11 +30,11 @@ class client(object):
         interfaccia = threading.Thread(target=self.interfaccia_client)
         invio_richieste = threading.Thread(target=self.invia_richieste_al_loadbalancer, args=(client_socket,))
         ricevi_risposte = threading.Thread(target=self.ricezione_risposta, args=(client_socket,))
-        interfaccia.start();
-        invio_richieste.start();
+        interfaccia.start()
+        invio_richieste.start()
         ricevi_risposte.start()
-        interfaccia.join();
-        invio_richieste.join();
+        interfaccia.join()
+        invio_richieste.join()
         ricevi_risposte.join()
 
     def connessione_al_loadbalancer(self):
@@ -52,17 +49,11 @@ class client(object):
         try:
             # creo una socket client
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            print(client_socket)
-            print(loadBalancer_ip)
             # client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # connetto il client con il loadBalancer
             # client_socket.connect((loadBalancer_ip, loadBalancer_port))
             client_socket.connect(("127.0.0.1", 60003))
-
             print(f"Connessione al server {loadBalancer_ip}:{loadBalancer_port} stabilita.")
-            # DEVO RICHIAMARE COME FUNZIONE L'INTERFACCIA_CON_LOADBALANCER()
-            # interfaccia_con_loadbalancer(client_socket)
-            # return client_socket
             return client_socket
         except:
             print(f"Errore durante la connessione al server: {socket.error}")
@@ -77,36 +68,37 @@ class client(object):
             # richiede il comando da terminale
             comando = input(" Digita il comando:  ")
             # inserisco il comando dentro la lista dei comandi da svolgere
+            if comando == 'exit':
+                self.comandi.append(comando)
+                print("Chiusura della connessione con il server...")
+                break
             if comando == 'random':
                 # self.comandi.pop(0)
                 num_richieste = int(input("Digita il numero di richieste randomiche da creare:  "))
                 for numero in range(num_richieste):
                     richiesta = self.crea_comando_random()
+                    print(richiesta)
                     self.comandi.append(richiesta)
-                print(self.comandi)
             else:
+                self.interfaccia_client()
                 self.comandi.append(comando)
-            if comando == 'exit':
-                self.comandi.append(comando)
-                print("Chiusura della connessione con il server...")
-                break
 
     def invia_richieste_al_loadbalancer(self, client_socket):
         """
         Funzione che invia i comandi al loadBalancer (connessione TCP e socket) e riceve le risposte del loadBalancer
+
         Returns
         -------
         None.
+
         """
         try:
             while True:
                 # controllo se la lista dei comandi è vuota, se lo è assegno il comandi 'continua' che fa scorrere continuamente il thread
-
                 if len(self.comandi) != 0:
                     # assegno il primo comando
                     comando = self.comandi[0]
                     self.comandi.pop(0)
-                    print(comando, self.comandi)
                 else:
                     comando = "continue"
                 # se il comando è exit si manda il messaggio di chiusura al loadbalancer
@@ -118,19 +110,18 @@ class client(object):
                     self.counter_richieste += 1
                     print("Chiusura della connessione con il server...")
                     break
-
                 # se il comando è 'continue' faccio continuare a scorrere il thread
                 elif comando == "continue":
                     continue
                 else:
                     # Invia il comando al server e aumento il numero di richieste
-                    comando_con_slash = "/" + comando
+                    comando_con_slash="/"+comando
                     client_socket.send(comando_con_slash.encode())
                     self.counter_richieste += 1
-
         except socket.error as error:
             print(f"Errore di comunicazione con il server: {error}")
             sys.exit(1)
+
 
     def crea_comando_random(self):
         """

@@ -2,9 +2,6 @@ import socket
 import threading
 import random
 
-
-# commento per provare il commit
-
 class server(object):
     def __init__(self):
         self.ip = "127.0.0.1"

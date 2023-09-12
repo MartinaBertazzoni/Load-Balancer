@@ -86,23 +86,28 @@ class LoadBalancer(object):
             while True:
                 # il loadBalancer riceve i dati dal client
                 data = client_socket.recv(4096)
+                # decodifico il messaggio (potrebbe essere del tipo /somma/divisione)
                 message = data.decode("utf-8")
-                if message.strip() == "exit":  # strips leva gli spazi bianchi
-                    print(f'{client_socket.getpeername()} si sta disconnettendo dal loadbalancer')
-                    # funzione che mette il log di disconnessione nel file loadbalancer.log al loadbalancer
-                    logging.info(f'Disconnessione da {client_socket.getpeername()}')
-                    exit_response = "Disconnessione avvenuta con successo"
-                    client_socket.send(exit_response.encode())
-                    # il loadbalancer elimina dalla lista dei clients attivi il client che si sta disconnettendo e chiude il collegamento
-                    self.active_clients.remove(client_socket)
-                    break
-                else:
-                    print("Messaggio ricevuto dal client: {}".format(message))
-                    # funzione che mette il log di ricervuta richesta nel file loadbalancer.log al loadbalancer
-                    logging.info(f'Richiesta ricevuta dal Client {client_socket.getpeername()}:{message}')
-
-                    # DEVO CHIAMARE LA FUNZIONE CHE INOLTRA LA RICHIESTA AD UN SERVER CON MECCANISMO ROUND ROBIN
-                    self.route_message(client_socket, data)
+                # elimino lo slash, quindi ho una lista di comandi dove compare anche '' e lo elimino
+                lista_dei_comandi = message.split("/")
+                lista_dei_comandi.remove('')
+                # a questo punto ho una lista di comandi, e scorro ogni comando della lista
+                for comando in lista_dei_comandi:
+                    if comando.strip() == "exit":  # strips leva gli spazi bianchi
+                        print(f'{client_socket.getpeername()} si sta disconnettendo dal loadbalancer')
+                        # funzione che mette il log di disconnessione nel file loadbalancer.log al loadbalancer
+                        logging.info(f'Disconnessione da {client_socket.getpeername()}')
+                        exit_response = "Disconnessione avvenuta con successo"
+                        client_socket.send(exit_response.encode())
+                        # il loadbalancer elimina dalla lista dei clients attivi il client che si sta disconnettendo e chiude il collegamento
+                        self.active_clients.remove(client_socket)
+                        break
+                    else:
+                        print("Messaggio ricevuto dal client: {}".format(comando))
+                        # funzione che mette il log di ricervuta richesta nel file loadbalancer.log al loadbalancer
+                        logging.info(f'Richiesta ricevuta dal Client {client_socket.getpeername()}:{comando}')
+                        # DEVO CHIAMARE LA FUNZIONE CHE INOLTRA LA RICHIESTA AD UN SERVER CON MECCANISMO ROUND ROBIN
+                        self.route_message(client_socket, comando.encode('utf-8'))
         except Exception as e:
             print("Errore durante la comunicazione con il client:", e)
             self.active_clients.remove(client_socket)
@@ -238,7 +243,7 @@ class LoadBalancer(object):
 
         # Attendi un certo intervallo di tempo prima di effettuare un nuovo controllo
         # time.sleep(5)  # Controlla lo stato dei server ogni 5 secondi
-        print(self.server_flags)
+
 
     def gestione_comunicazione_server(self):
         """

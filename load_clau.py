@@ -22,7 +22,7 @@ class LoadBalancer(object):
         """
 
         # porta in cui si mette in ascolto il server
-        self.port = 60006
+        self.port = 60009
         self.ip = '127.0.0.1'
         # lista che tiene  conto dei client collegati con il loadBalancer
         self.clients = []
@@ -32,7 +32,7 @@ class LoadBalancer(object):
         quest'ultimo inivii la richiesta al loadbalancer di ricevere nuovamente i compiti"""
         self.richieste = {}  # la chiave è ip del client, argomento nome richieste
         self.servers = ["127.0.0.1", "127.0.0.1", "127.0.0.1"]
-        self.port_server = [5007, 5008, 5011]
+        self.port_server = [5015, 5016, 5017]
         self.current_server_index = 0
         self.current_server_port_index = 0
         self.server_flags = [False] * len(self.servers)
@@ -254,11 +254,6 @@ class LoadBalancer(object):
                 except (socket.timeout, ConnectionRefusedError):
                     # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
                     self.server_flags[i] = False
-
-        # Attendi un certo intervallo di tempo prima di effettuare un nuovo controllo
-        # time.sleep(5)  # Controlla lo stato dei server ogni 5 secondi
-
-    # print(self.server_flags)
 
     def gestione_comunicazione_server(self):
         """

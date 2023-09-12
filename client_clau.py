@@ -21,8 +21,8 @@ class client(object):
         self.counter_richieste = 0
         # flag che mi dice se chiudere il socket
         self.chiusura = False
-        self.name_client=None
-        self.file_path_risultati="./risultati.txt"
+        self.name_client = None
+        self.file_path_risultati = "./risultati.txt"
 
     def avvio_client(self):
         """
@@ -32,20 +32,21 @@ class client(object):
         3.thread che rimane in ascolto per ricevere le risposte delle richieste inviate
         """
         # controllo se il file dei risultati esiste; se non è esiste, lo creo
-        self.verifica_e_crea_file()
-        # controllo se il file dei risultati è vuoto; se no, lo svuoto
-        if not self.is_file_empty():
-            self.svuota_file()
-        self.name_client=input("Inserisci il nome del Client connesso: ")
+        # self.verifica_e_crea_file()
+        # # controllo se il file dei risultati è vuoto; se no, lo svuoto
+        # if not self.is_file_empty():
+        #     self.svuota_file()
+        # self.name_client=input("Inserisci il nome del Client connesso: ")
+
         client_socket = self.connessione_al_loadbalancer()
         interfaccia = threading.Thread(target=self.interfaccia_client)
         invio_richieste = threading.Thread(target=self.invia_richieste_al_loadbalancer, args=(client_socket,))
         ricevi_risposte = threading.Thread(target=self.ricezione_risposta, args=(client_socket,))
-        interfaccia.start();
-        invio_richieste.start();
+        interfaccia.start()
+        invio_richieste.start()
         ricevi_risposte.start()
-        interfaccia.join();
-        invio_richieste.join();
+        interfaccia.join()
+        invio_richieste.join()
         ricevi_risposte.join()
 
     def connessione_al_loadbalancer(self):
@@ -65,7 +66,7 @@ class client(object):
             # client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # connetto il client con il loadBalancer
             # client_socket.connect((loadBalancer_ip, loadBalancer_port))
-            client_socket.connect(("127.0.0.1", 60006))
+            client_socket.connect(("127.0.0.1", 60002))
 
             print(f"Connessione al server {loadBalancer_ip}:{loadBalancer_port} stabilita.")
             # DEVO RICHIAMARE COME FUNZIONE L'INTERFACCIA_CON_LOADBALANCER()
@@ -166,7 +167,7 @@ class client(object):
                 else:
                     message = client_socket.recv(1024).decode("utf-8")
                     # RICHIAMO METODO CHE SALVA I RISULTATI IN UN FILE
-                    self.creo_file_risposta(message)
+                    #self.creo_file_risposta(message)
                     print(message)
                     self.counter_richieste -= 1
         except:
@@ -174,36 +175,36 @@ class client(object):
 
 
 
-    def creo_file_risposta(self, risultato):
-        """
-        Creo un file con le risposte di tutte le richieste
-
-        :param risultato:
-        :return:
-        """
-        with open('risultati.txt', 'a') as file:
-            file.write(self.name_client + " " + risultato + "\n")
-
-    def is_file_empty(self):
-        """ Metodo che verifica se il contenuto del file è vuoto
-            restituirà la dimensione del file in byte. Se il file è vuoto, la dimensione
-            sarà 0, quindi la funzione is_file_empty restituirà True.
-            Altrimenti, se il file ha del contenuto, restituirà False."""
-        return os.path.getsize(self.file_path_risultati) == 0
-
-    def svuota_file(self):
-        """
-        Metodo che elimina il contenuto del file
-        return: None
-        """
-        with open(self.file_path_risultati, 'w') as file:
-            pass
-
-    def verifica_e_crea_file(self):
-        if not os.path.exists(self.file_path_risultati):
-            # Se il file non esiste, crealo
-            with open(self.file_path_risultati, 'w') as file:
-                pass
+    # def creo_file_risposta(self, risultato):
+    #     """
+    #     Creo un file con le risposte di tutte le richieste
+    #
+    #     :param risultato:
+    #     :return:
+    #     """
+    #     with open('risultati.txt', 'a') as file:
+    #         file.write(self.name_client + " " + risultato + "\n")
+    #
+    # def is_file_empty(self):
+    #     """ Metodo che verifica se il contenuto del file è vuoto
+    #         restituirà la dimensione del file in byte. Se il file è vuoto, la dimensione
+    #         sarà 0, quindi la funzione is_file_empty restituirà True.
+    #         Altrimenti, se il file ha del contenuto, restituirà False."""
+    #     return os.path.getsize(self.file_path_risultati) == 0
+    #
+    # def svuota_file(self):
+    #     """
+    #     Metodo che elimina il contenuto del file
+    #     return: None
+    #     """
+    #     with open(self.file_path_risultati, 'w') as file:
+    #         pass
+    #
+    # def verifica_e_crea_file(self):
+    #     if not os.path.exists(self.file_path_risultati):
+    #         # Se il file non esiste, crealo
+    #         with open(self.file_path_risultati, 'w') as file:
+    #             pass
 
 
 if __name__ == "__main__":

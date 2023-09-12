@@ -8,7 +8,7 @@ import random
 class server(object):
     def __init__(self):
         self.ip = "127.0.0.1"
-        self.port = 5017
+        self.port = 5009
         self.clients = []
         self.active_clients = []
         self.richieste = {}  # la chiave è ip del client, argomento nome richieste
@@ -81,7 +81,10 @@ class server(object):
             risultato = A * B
         if comando == "divisione":
             risultato = A / B
-        soluzione = f"Il risultato dell'operazione {comando} fra {A} e {B} è {risultato}"
+        soluzione = {'A': A,
+                     'B': B,
+                     'operazione': comando,
+                     'risultato': risultato}
         return soluzione
 
     # MANCA L'ATTRIBUTO CHE INVIA LA SOLUZIONE DEI COMANDI AL CLIENT

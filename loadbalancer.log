@@ -1,13 +1,19 @@
-INFO - Client connesso: ('127.0.0.1', 62691)
-INFO - Richiesta ricevuta dal Client ('127.0.0.1', 62691):sottrazione
-INFO - Inoltro richiesta del Client ('127.0.0.1', 62691) al server 127.0.0.1:5007
-INFO - Richiesta ricevuta dal Client ('127.0.0.1', 62691):divisione
-INFO - Inoltro richiesta del Client ('127.0.0.1', 62691) al server 127.0.0.1:5007
-INFO - Richiesta ricevuta dal Client ('127.0.0.1', 62691):somma
-INFO - Inoltro richiesta del Client ('127.0.0.1', 62691) al server 127.0.0.1:5007
-INFO - Richiesta ricevuta dal Client ('127.0.0.1', 62691):sottrazione
-INFO - Inoltro richiesta del Client ('127.0.0.1', 62691) al server 127.0.0.1:5007
-INFO - Richiesta ricevuta dal Client ('127.0.0.1', 62691):divisione
-INFO - Inoltro richiesta del Client ('127.0.0.1', 62691) al server 127.0.0.1:5007
-INFO - Richiesta ricevuta dal Client ('127.0.0.1', 62691):divisione
-INFO - Inoltro richiesta del Client ('127.0.0.1', 62691) al server 127.0.0.1:5007
+INFO - Client connesso: ('127.0.0.1', 49528)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 49528):moltiplicazione
+INFO - Client connesso: ('127.0.0.1', 65145)
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 65145):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 65145) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 65145):divisione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 65145) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 65145):sottrazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 65145) al server 127.0.0.1:5009
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 65145):moltiplicazione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 65145) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 65145):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 65145) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 65145):somma
+INFO - Inoltro richiesta del Client ('127.0.0.1', 65145) al server 127.0.0.1:5007
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 65145):divisione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 65145) al server 127.0.0.1:5008
+INFO - Richiesta ricevuta dal Client ('127.0.0.1', 65145):divisione
+INFO - Inoltro richiesta del Client ('127.0.0.1', 65145) al server 127.0.0.1:5007

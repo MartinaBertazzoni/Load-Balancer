@@ -87,10 +87,9 @@ class server(object):
                      'risultato': risultato}
         return soluzione
 
+    # MANCA L'ATTRIBUTO CHE INVIA LA SOLUZIONE DEI COMANDI AL CLIENT
 
 
 if __name__ == "__main__":
     server = server()
     server.socket_server()
-
-

@@ -5,9 +5,6 @@ import threading
 import time
 
 
-# commento per provare il commit
-
-
 # creata la classe client per far accedere i thread agli attributi
 class client(object):
 
@@ -71,30 +68,33 @@ class client(object):
             # richiede il comando da terminale
             comando = input(" Digita il comando:  ")
             # inserisco il comando dentro la lista dei comandi da svolgere
+            if comando == 'exit':
+                self.comandi.append(comando)
+                print("Chiusura della connessione con il server...")
+                break
             if comando == 'random':
                 # self.comandi.pop(0)
                 num_richieste = int(input("Digita il numero di richieste randomiche da creare:  "))
                 for numero in range(num_richieste):
                     richiesta = self.crea_comando_random()
+                    print(richiesta)
                     self.comandi.append(richiesta)
             else:
+                self.interfaccia_client()
                 self.comandi.append(comando)
-            if comando == 'exit':
-                self.comandi.append(comando)
-                print("Chiusura della connessione con il server...")
-                break
 
     def invia_richieste_al_loadbalancer(self, client_socket):
         """
         Funzione che invia i comandi al loadBalancer (connessione TCP e socket) e riceve le risposte del loadBalancer
+
         Returns
         -------
         None.
+
         """
         try:
             while True:
                 # controllo se la lista dei comandi è vuota, se lo è assegno il comandi 'continua' che fa scorrere continuamente il thread
-
                 if len(self.comandi) != 0:
                     # assegno il primo comando
                     comando = self.comandi[0]
@@ -110,19 +110,18 @@ class client(object):
                     self.counter_richieste += 1
                     print("Chiusura della connessione con il server...")
                     break
-
                 # se il comando è 'continue' faccio continuare a scorrere il thread
                 elif comando == "continue":
                     continue
                 else:
                     # Invia il comando al server e aumento il numero di richieste
-                    comando_con_slash = "/" + comando
+                    comando_con_slash="/"+comando
                     client_socket.send(comando_con_slash.encode())
                     self.counter_richieste += 1
-
         except socket.error as error:
             print(f"Errore di comunicazione con il server: {error}")
             sys.exit(1)
+
 
     def crea_comando_random(self):
         """

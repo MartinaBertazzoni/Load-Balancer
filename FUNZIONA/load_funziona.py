@@ -7,6 +7,7 @@ import logging
 from pynput import keyboard  # Import pynput library
 import sys
 import multiprocessing
+import time
 
 
 # commento per testare il commit
@@ -29,14 +30,15 @@ class LoadBalancer(object):
         quest'ultimo inivii la richiesta al loadbalancer di ricevere nuovamente i compiti"""
         self.richieste = {}  # la chiave è ip del client, argomento nome richieste
         self.servers = ["127.0.0.1", "127.0.0.1", "127.0.0.1"]
-        self.port_server = [5007, 5008, 5009]
+        self.port_server = [5007, 5008, 5017]
         self.current_server_index = 0
         self.current_server_port_index = 0
         self.server_flags = [False] * len(self.servers)
 
         # registro attività loadBalancer e creazione del file loadbalancer.log
         self.log_file = 'loadbalancer.log'
-        logging.basicConfig(filename=self.log_file, level=logging.INFO, format='%(levelname)s - %(message)s')
+        logging.basicConfig(filename=self.log_file, level=logging.INFO, filemode='w',
+                            format='%(levelname)s - %(message)s')
 
         self.shutdown_event = multiprocessing.Event()  # Event to signal shutdown
         self.keyboard_listener = None  # Store the keyboard listener object
@@ -71,7 +73,13 @@ class LoadBalancer(object):
         funzione che aavvia i metodi del loadbalancer, nel caso apre e chiude thread per gestire comunicazioni con client
         e server
         """
-        pass
+        self.creazione_socket_loadBalancer()
+        monitoraggio=threading.Thread(target=self.monitoraggio_server)
+        connessione = threading.Thread(target=self.connessione_client)
+        thread = threading.Thread(target=self.thread_client)
+        monitoraggio.start()
+        connessione.start()
+        thread.start()
 
     def gestione_comunicazione_client(self, client_socket):
         """
@@ -86,23 +94,28 @@ class LoadBalancer(object):
             while True:
                 # il loadBalancer riceve i dati dal client
                 data = client_socket.recv(4096)
+                # decodifico il messaggio (potrebbe essere del tipo /somma/divisione)
                 message = data.decode("utf-8")
-                if message.strip() == "exit":  # strips leva gli spazi bianchi
-                    print(f'{client_socket.getpeername()} si sta disconnettendo dal loadbalancer')
-                    # funzione che mette il log di disconnessione nel file loadbalancer.log al loadbalancer
-                    logging.info(f'Disconnessione da {client_socket.getpeername()}')
-                    exit_response = "Disconnessione avvenuta con successo"
-                    client_socket.send(exit_response.encode())
-                    # il loadbalancer elimina dalla lista dei clients attivi il client che si sta disconnettendo e chiude il collegamento
-                    self.active_clients.remove(client_socket)
-                    break
-                else:
-                    print("Messaggio ricevuto dal client: {}".format(message))
-                    # funzione che mette il log di ricervuta richesta nel file loadbalancer.log al loadbalancer
-                    logging.info(f'Richiesta ricevuta dal Client {client_socket.getpeername()}:{message}')
-
-                    # DEVO CHIAMARE LA FUNZIONE CHE INOLTRA LA RICHIESTA AD UN SERVER CON MECCANISMO ROUND ROBIN
-                    self.route_message(client_socket, data)
+                # elimino lo slash, quindi ho una lista di comandi dove compare anche '' e lo elimino
+                lista_dei_comandi = message.split("/")
+                lista_dei_comandi.remove('')
+                # a questo punto ho una lista di comandi, e scorro ogni comando della lista
+                for comando in lista_dei_comandi:
+                    if comando.strip() == "exit":  # strips leva gli spazi bianchi
+                        print(f'{client_socket.getpeername()} si sta disconnettendo dal loadbalancer')
+                        # funzione che mette il log di disconnessione nel file loadbalancer.log al loadbalancer
+                        logging.info(f'Disconnessione da {client_socket.getpeername()}')
+                        exit_response = "Disconnessione avvenuta con successo"
+                        client_socket.send(exit_response.encode())
+                        # il loadbalancer elimina dalla lista dei clients attivi il client che si sta disconnettendo e chiude il collegamento
+                        self.active_clients.remove(client_socket)
+                        break
+                    else:
+                        print("Messaggio ricevuto dal client: {}".format(comando))
+                        # funzione che mette il log di ricervuta richesta nel file loadbalancer.log al loadbalancer
+                        logging.info(f'Richiesta ricevuta dal Client {client_socket.getpeername()}:{comando}')
+                        # DEVO CHIAMARE LA FUNZIONE CHE INOLTRA LA RICHIESTA AD UN SERVER CON MECCANISMO ROUND ROBIN
+                        self.route_message(client_socket, comando.encode('utf-8'))
         except Exception as e:
             print("Errore durante la comunicazione con il client:", e)
             self.active_clients.remove(client_socket)
@@ -117,7 +130,7 @@ class LoadBalancer(object):
         """
         while True:
             # MONITORO LO STATO DEI SERVER PRIMA DI SCEGLIERE
-            self.monitoraggio_server()
+
             # Scegli il prossimo server nell'ordine circolare
             server_address = self.servers[self.current_server_index]
             server_port = self.port_server[self.current_server_port_index]
@@ -149,6 +162,7 @@ class LoadBalancer(object):
             server_socket.sendall(data)
             response = server_socket.recv(1024)
             server_socket.close()
+            time.sleep(0.2)
             client_socket.send(response)
         except:
             print("C'è stato un errore")
@@ -171,10 +185,7 @@ class LoadBalancer(object):
         self.balancer_socket.bind((self.ip, self.port))
         self.balancer_socket.listen()
         print("Server di load balancing in ascolto su {}:{}".format(self.ip, self.port))
-        connessione = threading.Thread(target=self.connessione_client)
-        thread = threading.Thread(target=self.thread_client)
-        connessione.start()
-        thread.start()
+
 
     def connessione_client(self):
 
@@ -227,22 +238,20 @@ class LoadBalancer(object):
         operativo o non operativo, carico computazionale solo se troviamo funzioni che ci consentono di osservarlo) di ogni sever
         in tempi regolari
         """
-        for i, server_address in enumerate(self.servers):
-            # Qui creo una connessione con il server per verificare il suo stato
-            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server_socket.settimeout(2)  # Timeout per la connessione
-            try:
-                server_socket.connect((server_address, self.port_server[i]))
-                server_socket.close()
-                # Se la connessione riesce, il server è attivo, quindi aggiorno la flag in True
-                self.server_flags[i] = True
-            except (socket.timeout, ConnectionRefusedError):
-                # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
-                self.server_flags[i] = False
-
-        # Attendi un certo intervallo di tempo prima di effettuare un nuovo controllo
-        # time.sleep(5)  # Controlla lo stato dei server ogni 5 secondi
-        print(self.server_flags)
+        while not self.shutdown_event.is_set():
+            # itera sul numero dei server i
+            for i, server_address in enumerate(self.servers):
+                # Qui creo una connessione con il server per verificare il suo stato
+                server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                server_socket.settimeout(1)  # Timeout per la connessione
+                try:
+                    server_socket.connect((server_address, self.port_server[i]))
+                    server_socket.close()
+                    # Se la connessione riesce, il server è attivo, quindi aggiorno la flag in True
+                    self.server_flags[i] = True
+                except (socket.timeout, ConnectionRefusedError):
+                    # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
+                    self.server_flags[i] = False
 
     def gestione_comunicazione_server(self):
         """
@@ -255,7 +264,7 @@ class LoadBalancer(object):
 
 if __name__ == '__main__':
     load_balancer = LoadBalancer()
-    load_balancer.creazione_socket_loadBalancer()
+    load_balancer.avvio_loadbalancer()
 
     load_balancer.keyboard_process.start()
 
@@ -263,6 +272,3 @@ if __name__ == '__main__':
         if load_balancer.shutdown_event.is_set():
             load_balancer.shutdown()
             break
-
-
-

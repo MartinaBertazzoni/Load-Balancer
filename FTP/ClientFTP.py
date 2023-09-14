@@ -4,10 +4,14 @@ from PIL import Image, ImageDraw
 import random
 import sys
 import pickle
+import os
+
+
 class Client(object):
 
     def __init__(self):
-        self.image_list = []
+        self.image_dict={}
+        self.contatore_immagini=1
 
 
     def avvio_client_socket(self):
@@ -33,6 +37,7 @@ class Client(object):
                 num_richieste = int(input(" Inserisci il numero di immagini da creare:  "))
                 for numero in range(num_richieste):
                     image = self.crea_immagine()
+                    self.contatore_immagini += 1
                     self.image_list.append(image)
                 print(self.image_list)
             else:
@@ -56,16 +61,23 @@ class Client(object):
                 color = (r, g, b)
                 # Disegna un pixel con il colore casuale
                 draw.point((x, y), fill=color)
+        nome_immagine = f"immagine_{self.contatore_immagini}.png"
         # Salva l'immagine
-        img.save('immagine_random.png')
+        img.save(nome_immagine)
         # Visualizza l'immagine (richiede un visualizzatore di immagini esterno)
         img.show()
+
+        file = open(f"immagine_{self.contatore_immagini}.png", "rb")
+        file_size=os.path.getsize(f"immagine_{self.contatore_immagini}.png")
+
+
+
 
 
     def invia_dati_al_loadbalancer(self, client_socket):
         try:
             while True:
-                if len(self.image_list) != 0:
+                if len(self.image_dict) != 0:
                     image = self.image_list[0]
                     self.image_list.pop(0)
                     # Serializza l'immagine utilizzando Pickle

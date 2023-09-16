@@ -2,6 +2,8 @@ import socket
 import sys
 import os
 import threading
+import time
+
 
 class Client(object):
 
@@ -48,7 +50,7 @@ class Client(object):
                     invio_richieste.join()
                     ricevi_risposte_dal_load = threading.Thread(target=self.ricevi_dati_dal_loadbalancer())
                     ricevi_risposte_dal_load.start()
-                    ricevi_risposte_dal_load.join()
+
                 else:
                     lista_file = os.listdir('./file/')
                     print(lista_file)
@@ -66,7 +68,7 @@ class Client(object):
 
     def ricevi_dati_dal_loadbalancer(self):
         try:
-            message_from_load=self.client_socket.recv(1024).decode("utf-8")
+            message_from_load = self.client_socket.recv(1024).decode("utf-8")
             print(message_from_load)
         except socket.error as error:
             print(f"Impossibile ricevere dati dal loadbalancer: {error}")

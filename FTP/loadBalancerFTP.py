@@ -40,6 +40,7 @@ class LoadBalancer(object):
                 print("Connessione accettata da {}:{}".format(client_ip[0], client_ip[1]))
                 ricezione_dati = threading.Thread(target=self.ricevo_file_dal_client, args=(client_socket,))
                 ricezione_dati.start()
+                ricezione_dati.join()
             except Exception as e:
                 print("Errore durante la comunicazione con il client:", e)
 
@@ -48,37 +49,51 @@ class LoadBalancer(object):
         try:
             while True:
                 file = client_socket.recv(1024).decode("utf-8")
-                print(" Ho ricevuto il file: ", file)
-                message_to_client = f" File ricevuto correttamente dal load balancer: {file}"
-                client_socket.send(message_to_client.encode("utf-8"))
+                if not file:
+                    break
                 # #creo un thread che invia i file ai server
-                # invia_file_ai_server=threading.Thread(target=self.invia_ai_server, args=(file,))
-                # invia_file_ai_server.start()
-                # invia_file_ai_server.join()
-                # risposta_dal_server = threading.Thread(target=self.ricevi_risposta_server())
-                # risposta_dal_server.start()
-                # risposta_dal_server.join()
-
+                invia_file_ai_server = threading.Thread(target=self.invia_ai_server, args=(file, client_socket))
+                invia_file_ai_server.start()
+                invia_file_ai_server.join()
         except Exception as e:
             print("Errore durante la comunicazione con il client:", e)
+        finally:
+            client_socket.close()
 
 
-    # def invia_ai_server(self, file):
-    #     try:
-    #         self.balancer_socket.send(file.encode("utf-8"))
-    #         print("File inoltrato al server ")
-    #     except socket.error as error:
-    #         print(f"Errore di comunicazione con il loadbalancer: {error}")
-    #         sys.exit(1)
-    #     pass
-    #
-    # def ricevi_risposta_server(self):
-    #     try:
-    #         message_from_server = self.balancer_socket.recv(1024).decode("utf-8")
-    #         print(message_from_server)
-    #     except socket.error as error:
-    #         print(f"Impossibile ricevere dati dal loadbalancer: {error}")
-    #         sys.exit(1)
+    def invia_ai_server(self, file, client_socket):
+        try:
+            server_address = "127.0.0.1"
+            server_port = 5007
+            # creo una socket per la connessione con il server
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # mi connetto con il server
+            server_socket.connect((server_address, server_port))
+            server_socket.send(file.encode("utf-8"))
+            print("File inoltrato al server ")
+            # ricevo risposte dai server
+            risposta_dal_server = threading.Thread(target=self.ricevi_risposta_server, args=(server_socket,client_socket))
+            risposta_dal_server.start()
+            risposta_dal_server.join()
+
+        except socket.error as error:
+            print(f"Errore di comunicazione con il server: {error}")
+            sys.exit(1)
+        pass
+
+    def ricevi_risposta_server(self,server_socket, client_socket):
+        try:
+            message_from_server = server_socket.recv(1024).decode("utf-8")
+            print(message_from_server)
+            # rispondo al client
+            client_socket.send(message_from_server.encode("utf-8"))
+        except socket.error as error:
+            print(f"Impossibile ricevere dati dal server: {error}")
+            sys.exit(1)
+
+
+
+
 
 
     def weighted_round_robin(self):

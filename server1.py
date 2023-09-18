@@ -1,15 +1,20 @@
-import resource
+
 import socket
 import threading
 import time
 import psutil
 import random
+from pynput import keyboard  # Import pynput library
+import sys
+import multiprocessing
 
 
 # commento per provare il commit
 
 class server(object):
     def __init__(self):
+        self.shutdown_event = multiprocessing.Event()  # Event to signal shutdown
+        self.keyboard_listener = None  # Store the keyboard listener object
         self.ip = "127.0.0.1"
         self.port = 5007
         # tupla per la creazione della socket per il monitoraggio del server
@@ -19,7 +24,44 @@ class server(object):
         self.richieste = {}  # la chiave è ip del client, argomento nome richieste
         self.LIMITE_CPU = 80*1024*1024 # 80 MB
         self.SOVRACCARICO = None
+        monitoraggio=threading.Thread(target=self.socket_server_per_il_monitoraggio)
+        monitoraggio.daemon=True
+        monitoraggio.start()
 
+        
+        self.keyboard_process = multiprocessing.Process(target=self.monitor_keyboard_input)
+    
+    def monitor_keyboard_input(self):
+        # Create a keyboard listener with a timeout
+        with keyboard.Listener(on_press=self.handle_esc_key) as self.keyboard_listener:
+            while not self.shutdown_event.is_set():
+                pass
+
+    def handle_esc_key(self, key):
+        if key == keyboard.Key.esc:
+            self.shutdown_event.set()
+
+    def shutdown(self):
+        print("Shutting down...")
+        if self.shutdown_event.is_set():
+            if hasattr(self, 'server_socket') and self.server_socket:
+                self.server_socket.close()
+            if len(self.clients) != 0:
+                for client_socket in self.active_clients:
+                    client_socket.close()
+            for thread in threading.enumerate():
+                if not thread.daemon and thread != threading.main_thread():
+                    thread.join()
+            print("Load balancer has been shut down.")
+            sys.exit(0)
+
+    def avvio(self):
+        self.socket_server()
+        # creo un thread che rimane in ascolto per ricevere i comandi dal load balancer
+        thread_gestione_client = threading.Thread(target=self.accettazione_lb_per_richieste)
+        thread_gestione_client.start()
+        thread_gestione_client.join()
+        
 
 
 
@@ -28,26 +70,22 @@ class server(object):
         Funzione che crea la socket del server e crea un thread che rimane in ascolto per ricevere i comandi dal load balancer
         """
         # creo una socket server
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # collego la socket al server
-        server_socket.bind((self.ip, self.port))
+        self.server_socket.bind((self.ip, self.port))
         # metto in ascolto il server
-        server_socket.listen()
+        self.server_socket.connect(("127.0.0.1",60004))
         print(f"Server in ascolto su {self.ip}:{self.port}")
-        # creo un thread che rimane in ascolto per ricevere i comandi dal load balancer
-        thread_gestione_client = threading.Thread(target=self.accettazione_lb_per_richieste, args=(server_socket,))
-        thread_gestione_client.start()
-        thread_gestione_client.join()
-        server_socket.close()
+        
 
-    def accettazione_lb_per_richieste(self, server_socket):
+    def accettazione_lb_per_richieste(self):
         """
         Funzione che rimane in ascolto per ricevere le richieste dal load balancer
         """
-        while True:
+        while not self.shutdown_event:
             # accetto le connessioni in entrata
-            lb_socket, lb_ip = server_socket.accept()
+            lb_socket, lb_ip = self.server_socket.accept()
             # avvio un thread per gestire le richieste del client
             thread_richieste_client = threading.Thread(target=self.richieste_da_lb, args=(lb_socket, lb_ip,))
             thread_richieste_client.start()
@@ -94,14 +132,21 @@ class server(object):
         # metto in ascolto la socket
         socket_server_monitoraggio.listen()
         while True:  # qui deve essere messo un shutdown
-            # acetto le connessioni in entrata con il load balancer
-            socket_lb_monitoraggio, address_lb_monitoraggio = socket_server_monitoraggio.accept()
-            # richiamo la funzione che moniotra il carico del server
-            notifica_sovraccarico = self.monitoraggio_carico_server(socket_lb_monitoraggio)
-            # invio la percentuale di cpu al load balancer
-            socket_lb_monitoraggio.sendall(notifica_sovraccarico.encode('utf-8'))
-            socket_lb_monitoraggio.close()
-            time.sleep(1)
+            try:
+                self.socket_server_per_il_monitoraggio.settimeout(1)
+                try:
+                    # acetto le connessioni in entrata con il load balancer
+                    socket_lb_monitoraggio, address_lb_monitoraggio = socket_server_monitoraggio.accept()
+                    # richiamo la funzione che moniotra il carico del server
+                    notifica_sovraccarico = self.monitoraggio_carico_server(socket_lb_monitoraggio)
+                    # invio la percentuale di cpu al load balancer
+                    socket_lb_monitoraggio.sendall(notifica_sovraccarico.encode('utf-8'))
+                    socket_lb_monitoraggio.close()
+                    time.sleep(1)
+                except socket.timeout:
+                    continue
+            except:
+                continue
         socket_server_monitoraggio.close()
 
     def monitoraggio_carico_server(self, socket_lb_monitoraggio):
@@ -143,4 +188,4 @@ class server(object):
 
 if __name__ == "__main__":
     server = server()
-    server.socket_server()
+    server.avvio()

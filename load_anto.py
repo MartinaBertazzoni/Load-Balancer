@@ -1,0 +1,308 @@
+"""
+Implementazione del load balancer
+"""
+import threading
+import socket
+import logging
+from pynput import keyboard  # Import pynput library
+import sys
+import multiprocessing
+import time
+
+class LoadBalancer(object):
+    def __init__(self):
+        """
+        Costruttore della classe loadBalancer
+        """
+        self.balancer_client_socket = None
+        self.balancer_servers_socket=None
+        self.porta_servers=60004
+        self.porta_client = 60003 # porta in cui si mette in ascolto il 
+        self.ip = '127.0.0.1'
+        # lista che tiene  conto dei client collegati con il loadBalancer
+        self.clients = []
+        self.server_socket=[]
+        self.active_clients = []
+        self.richieste = {}  # la chiave è ip del client, argomento nome richieste
+        self.servers_address = []
+        self.current_server_index = 0
+        self.current_server_port_index = 0
+        self.server_flags = [False] * 3
+
+        # registro attività loadBalancer e creazione del file loadbalancer.log
+        self.log_file = 'loadbalancer.log'
+        logging.basicConfig(filename=self.log_file, level=logging.INFO, format='%(levelname)s - %(message)s')
+        self.shutdown_event = multiprocessing.Event()  # Event to signal shutdown
+        self.keyboard_listener = None  # Store the keyboard listener object
+        self.keyboard_process = multiprocessing.Process(target=self.monitor_keyboard_input)
+
+
+
+
+    def monitor_keyboard_input(self):
+        # Create a keyboard listener with a timeout
+        with keyboard.Listener(on_press=self.handle_esc_key) as self.keyboard_listener:
+            while not self.shutdown_event.is_set():
+                pass
+
+    def handle_esc_key(self, key):
+        if key == keyboard.Key.esc:
+            self.shutdown_event.set()
+
+    def shutdown(self):
+        print("Shutting down...")
+        if self.shutdown_event.is_set():
+            if hasattr(self, 'balancer_socket') and self.balancer_socket:
+                self.balancer_socket.close()
+            if len(self.active_clients) != 0:
+                for client_socket in self.active_clients:
+                    client_socket.close()
+            for thread in threading.enumerate():
+                if not thread.daemon and thread != threading.main_thread():
+                    thread.join()
+            print("Load balancer has been shut down.")
+            sys.exit(0)
+
+
+
+    def avvio_loadbalancer(self):
+        """
+        funzione che aavvia i metodi del loadbalancer, nel caso apre e chiude thread per gestire comunicazioni con client
+        e server
+        """
+        self.creazione_socket_loadBalancer_verso_client()
+        self.creazione_socket_loadBalance_verso_servers()
+        monitoraggio = threading.Thread(target=self.monitoraggio_server)
+        connessione_client = threading.Thread(target=self.connessione_client)
+        connessione_server= threading.Thread(target=self.connessione_servers)
+        thread = threading.Thread(target=self.thread_client)
+        monitoraggio.start()
+        connessione_client.start()
+        connessione_server.start()
+        thread.start()
+
+    def creazione_socket_loadBalancer_verso_client(self):
+
+        """
+        Funzione che crea la socket TCP del loadBalancer per connetterlo all'host ed ai server
+        (da modificare)
+        Returns
+        -------
+        None.
+        """
+        # Creazione della socket del server
+        self.balancer_client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Binding della socket all'host e alla porta
+        self.balancer_client_socket.bind((self.ip, self.porta_client))
+        self.balancer_client_socket.listen()
+        print("Server di load balancing in ascolto su {}:{}".format(self.ip, self.porta_client))
+    
+    def creazione_socket_loadBalance_verso_servers(self):
+
+        """
+        Funzione che crea la socket TCP del loadBalancer per connetterlo all'host ed ai server
+        (da modificare)
+        Returns
+        -------
+        None.
+        """
+        # Creazione della socket del server
+        self.balancer_servers_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Binding della socket all'host e alla porta
+        self.balancer_servers_socket.bind((self.ip, self.porta_servers))
+        self.balancer_servers_socket.listen()
+        print("Server di load balancing in ascolto su {}:{}".format(self.ip, self.porta_servers))
+    
+    def connessione_client(self):
+
+        """
+        Funzione che accetta le connessioni in entrata e le gestisce
+        """
+
+        while not self.shutdown_event.is_set():
+            try:
+                self.balancer_servers_socket.settimeout(1)
+                try:
+                    # Accetta le connessioni in entrata
+                    client_socket, client_ip = self.balancer_client_socket.accept()
+                    # Aggiunge il client alla lista dei client connessi
+                    self.clients.append(client_socket)
+                    # Commento di riuscita connessione con il client
+                    print("Connessione accettata da {}:{}".format(client_ip[0], client_ip[1]))
+                except socket.timeout:
+                    continue
+            except:
+                continue
+    def connessione_servers(self):
+
+        """
+        Funzione che accetta le connessioni in entrata e le gestisce
+        """
+
+        while not self.shutdown_event.is_set():
+            try:
+                self.balancer_servers_socket.settimeout(1)
+                try:
+                    # Accetta le connessioni in entrata
+                    server_socket, server_ip = self.balancer_servers_socket.accept()
+                    # Aggiunge il client alla lista dei client connessi
+                    self.server_socket.append(server_socket)
+                    self.servers_address.append(server_ip)
+                    # Commento di riuscita connessione con il client
+                    print("Connessione accettata da {}:{}".format(server_ip[0], server_ip[1]))
+                except socket.timeout:
+                    continue
+            except:
+                continue
+    def gestione_comunicazione_client(self, client_socket):
+        """
+        Funzione che gestisce la comunicazione con il client:
+        il server riceve i dati dal client e invia una risposta di avvenuta connessione;
+        in seguito invierà il comando ad un server per elaborare la richiesta
+        """
+        # funzione che mette il log di connessione nel file loadbalancer.log al loadbalancer
+        logging.info(f'Client connesso: {client_socket.getpeername()}')
+        try:
+            while True:
+                # il loadBalancer riceve i dati dal client
+                data = client_socket.recv(4096)
+                # decodifico il messaggio (potrebbe essere del tipo /somma/divisione)
+                message = data.decode("utf-8")
+                # elimino lo slash, quindi ho una lista di comandi dove compare anche '' e lo elimino
+                lista_dei_comandi = message.split("/")
+                lista_dei_comandi.remove('')
+                # a questo punto ho una lista di comandi, e scorro ogni comando della lista
+                for comando in lista_dei_comandi:
+                    if comando.strip() == "exit":  # strips leva gli spazi bianchi
+                        print(f'{client_socket.getpeername()} si sta disconnettendo dal loadbalancer')
+                        # funzione che mette il log di disconnessione nel file loadbalancer.log al loadbalancer
+                        logging.info(f'Disconnessione da {client_socket.getpeername()}')
+                        exit_response = "Disconnessione avvenuta con successo"
+                        client_socket.send(exit_response.encode())
+                        # il loadbalancer elimina dalla lista dei clients attivi il client che si sta disconnettendo e chiude il collegamento
+                        self.active_clients.remove(client_socket)
+                        break
+                    else:
+                        print("Messaggio ricevuto dal client: {}".format(comando))
+                        # funzione che mette il log di ricervuta richesta nel file loadbalancer.log al loadbalancer
+                        logging.info(f'Richiesta ricevuta dal Client {client_socket.getpeername()}:{comando}')
+                        self.route_message(client_socket, comando.encode('utf-8'))
+        except Exception as e:
+            print("Errore durante la comunicazione con il client:", e)
+            self.active_clients.remove(client_socket)
+        finally:
+            client_socket.close()
+
+
+
+    def round_robin(self):
+        """
+        Algoritmo di ROUND ROBIN che inoltra a turno una richiesta del client a ciascun server.
+        Quando raggiunge la fine dell'elenco, il sistema di bilanciamento del carico torna indietro e scende nuovamente nell'elenco
+        """
+        while True:
+
+            # Scegli il prossimo server nell'ordine circolare
+            server_address = self.servers_address[self.current_server_index][0]
+            server_port = self.servers_address[self.current_server_port_index][1]
+
+            # Verifica se il server selezionato è attivo (flag True)
+            if self.server_flags[self.current_server_index]:
+                break  # Esci dal ciclo se il server è attivo
+
+            # Se il server non è attivo, passa al successivo nell'ordine
+            self.current_server_index = (self.current_server_index + 1) % len(self.servers_address)
+            self.current_server_port_index = (self.current_server_port_index + 1) % len(self.servers_address)
+
+        # Passa al successivo nell'ordine per la prossima richiesta
+        self.current_server_index = (self.current_server_index + 1) % len(self.servers_address)
+        self.current_server_port_index = (self.current_server_port_index + 1) % len(self.servers_address)
+
+        return server_address, server_port  # Restituisci l'indirizzo del server attivo
+
+    def route_message(self, client_socket, data):
+        try:
+            server_address, server_port = self.round_robin()
+            # funzione che mette il log di richiesta del Client inoltrata allo specifico Server nel file loadbalancer.log al loadbalancer
+            logging.info(
+                f'Inoltro richiesta del Client {client_socket.getpeername()} al server {server_address}:{server_port}')
+
+            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            server_socket.connect((server_address, server_port))
+            server_socket.sendall(data)
+            response = server_socket.recv(1024)
+            server_socket.close()
+            time.sleep(0.2)
+            client_socket.send(response)
+        except:
+            print("C'è stato un errore")
+
+    
+
+    
+
+    def thread_client(self):
+        active_threads = []  # List to store active client threads
+
+        while not self.shutdown_event.is_set():
+            if len(self.clients) != 0:
+                client_socket = self.clients[0]
+                print(self.clients)
+                self.clients.remove(client_socket)
+                self.active_clients.append(client_socket)
+
+                # Avvia un thread separato per gestire il client: per ogni client viene aperto un thread separato
+                client_thread = threading.Thread(target=self.gestione_comunicazione_client, args=(client_socket,))
+                client_thread.start()
+                active_threads.append(client_thread)
+            else:
+                # Check for and remove completed threads
+                for thread in active_threads:
+                    if not thread.is_alive():
+                        active_threads.remove(thread)
+                        thread.join()
+                        print('thread client chiuso')
+                continue
+
+    def monitoraggio_server(self):
+        """
+        metodo o insieme di metodi che ricevono e salvano le informazioni dello status (numero di richieste,
+        operativo o non operativo, carico computazionale solo se troviamo funzioni che ci consentono di osservarlo) di ogni sever
+        in tempi regolari
+        """
+        while not self.shutdown_event.is_set():
+            if len(self.servers_address)!=0:
+                for i, servers_address in enumerate(self.servers_address):
+                    # Qui creo una connessione con il server per verificare il suo stato
+                    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    server_socket.settimeout(1)  # Timeout per la connessione
+                    try:
+                        server_socket.connect(self.servers_address[i])
+                        server_socket.close()
+                        # Se la connessione riesce, il server è attivo, quindi aggiorno la flag in True
+                        self.server_flags[i] = True
+                    except (socket.timeout, ConnectionRefusedError):
+                        # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
+                        self.server_flags[i] = False
+            
+            time.sleep(1)
+
+
+    def gestione_comunicazione_server(self):
+        """
+        funzione che invia e distribuisce le richieste(tramite la funzione di algortimo nel nostro caso il round robin).
+        manda il segnale di chiusura della richiesta, reinvia il risulatato della richiesta
+        """
+        pass
+
+
+if __name__ == '__main__':
+    load_balancer = LoadBalancer()
+    load_balancer.avvio_loadbalancer()
+
+    load_balancer.keyboard_process.start()
+
+    while True:
+        if load_balancer.shutdown_event.is_set():
+            load_balancer.shutdown()
+            break

@@ -2,6 +2,11 @@ import sys
 import socket
 import threading
 import json
+import time
+import logging
+from pynput import keyboard  # Import pynput library
+import multiprocessing
+import threading
 
 class LoadBalancer(object):
     def __init__(self):
@@ -9,18 +14,41 @@ class LoadBalancer(object):
         self.port = 60003  # porta in cui si mette in ascolto il server
         self.ip = '127.0.0.1'
         self.clients=[]
-        self.SERVERS = ["127.0.0.1", "127.0.0.1", "127.0.0.1"]
-        self.PORTS = [5007, 5008, 5009]
-        self.CURRENT_SERVER_INDEX = 0
-        # indice della porta del server a cui il LB si sta interfacciando
-        self.CURRENT_SERVER_PORT_INDEX = 0
-        # lista che contiene le flag per il monitoraggio dei server
-        self.SERVER_FLAGS = [False] * len(self.SERVERS)
-        # lista che contiene le flag per il monitoraggio del sovraccarico dei server
-        self.SERVER_SOVRACCARICO_FLAGS = [False] * len(self.SERVERS)
-        # lista che contiene i processi attivi
-        self.PROCESSI_ATTIVI = []
+        self.servers = ["127.0.0.1", "127.0.0.1", "127.0.0.1"]
+        self.port_server = [5007, 5010, 5009]
+        self.current_server_index = 0
+        self.current_server_port_index = 0
+        self.server_flags = [False] * len(self.servers)
+        # registro attività loadBalancer e creazione del file loadbalancer.log
+        self.log_file = 'loadbalancer.log'
+        logging.basicConfig(filename=self.log_file, level=logging.INFO, format='%(levelname)s - %(message)s')
+        self.shutdown_event = multiprocessing.Event()  # Event to signal shutdown
+        self.keyboard_listener = None  # Store the keyboard listener object
+        self.keyboard_process = multiprocessing.Process(target=self.monitor_keyboard_input)
 
+    def monitor_keyboard_input(self):
+        # Create a keyboard listener with a timeout
+        with keyboard.Listener(on_press=self.handle_esc_key) as self.keyboard_listener:
+            while not self.shutdown_event.is_set():
+                pass
+
+    def handle_esc_key(self, key):
+        if key == keyboard.Key.esc:
+            self.shutdown_event.set()
+
+    def shutdown(self):
+        print("Shutting down...")
+        if self.shutdown_event.is_set():
+            if hasattr(self, 'balancer_socket') and self.balancer_socket:
+                self.balancer_socket.close()
+            if len(self.active_clients) != 0:
+                for client_socket in self.active_clients:
+                    client_socket.close()
+            for thread in threading.enumerate():
+                if not thread.daemon and thread != threading.main_thread():
+                    thread.join()
+            print("Load balancer has been shut down.")
+            sys.exit(0)
 
     def creo_socket_loadBalancer(self):
         self.balancer_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -95,6 +123,29 @@ class LoadBalancer(object):
             print(f"Errore di comunicazione con il server: {error}")
             sys.exit(1)
 
+    def monitoraggio_server(self):
+        """
+        metodo o insieme di metodi che ricevono e salvano le informazioni dello status (numero di richieste,
+        operativo o non operativo, carico computazionale solo se troviamo funzioni che ci consentono di osservarlo) di ogni sever
+        in tempi regolari
+        """
+        while not self.shutdown_event.is_set():
+            for i, server_address in enumerate(self.servers):
+                # Qui creo una connessione con il server per verificare il suo stato
+                server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                server_socket.settimeout(1)  # Timeout per la connessione
+                try:
+                    server_socket.connect((server_address, self.port_server[i]))
+                    server_socket.close()
+                    # Se la connessione riesce, il server è attivo, quindi aggiorno la flag in True
+                    self.server_flags[i] = True
+                    print("True")
+                except (socket.timeout, ConnectionRefusedError):
+                    # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
+                    self.server_flags[i] = False
+                    print("False")
+            time.sleep(1)
+
 
     def ricevi_risposta_server(self,server_socket, client_socket):
         try:
@@ -134,5 +185,7 @@ class LoadBalancer(object):
 
 if __name__ == "__main__":
     load = LoadBalancer()
+    monitoraggio = threading.Thread(target=load.monitoraggio_server)
+    monitoraggio.start()
     load.creo_socket_loadBalancer()
     load.connetto_il_client()

@@ -31,6 +31,7 @@ class Client(object):
 
 
     def interfaccia_utente(self):
+
         while True:
             # Creo una lista con tutti i nomi dei file contenuti all'interno della cartella indata
             lista_file = os.listdir('./file/')
@@ -50,13 +51,10 @@ class Client(object):
                     invio_richieste.join()
                     ricevi_risposte_dal_load = threading.Thread(target=self.ricevi_dati_dal_loadbalancer())
                     ricevi_risposte_dal_load.start()
-
                 else:
                     lista_file = os.listdir('./file/')
                     print(lista_file)
-                    nomefile = str(input('Inserisci il nome del file da trasferire fra quelli elencati:  '))
-                    self.file_name = './file/' + nomefile
-
+                    self.filepath = './file/' + str(input('Il file indicato non è presente nella cartella. Riprova : '))
 
     def invia_file_al_loadbalancer(self):
         try:

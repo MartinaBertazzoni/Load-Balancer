@@ -5,7 +5,7 @@ class Server(object):
 
     def __init__(self):
         self.ip = "127.0.0.1"
-        self.port = 5007
+        self.port = 5008
         self.server_socket = None
 
 

@@ -78,7 +78,6 @@ class LoadBalancer(object):
             while True:
                 # riceve il nome del file
                 self.filepath=client_socket.recv(4096).decode("utf-8")
-                print("il path", self.filepath)
                 if not self.filepath:
                     break
                 json_data_encoded = client_socket.recv(4096).decode("utf-8")
@@ -104,7 +103,7 @@ class LoadBalancer(object):
     def invia_ai_server(self,client_socket):
         try:
             server_address, server_port = self.round_robin()
-            print(server_address, server_port)
+
             # funzione che mette il log di richiesta del Client inoltrata allo specifico Server nel file loadbalancer.log al loadbalancer
             logging.info(
                 f'Inoltro richiesta del Client {client_socket.getpeername()} al server {server_address}:{server_port}')
@@ -119,9 +118,9 @@ class LoadBalancer(object):
             server_socket.send(json_data.encode("utf-8"))
 
             # ricevo risposte dai server
-            #risposta_dal_server = threading.Thread(target=self.ricevi_risposta_server, args=(server_socket,client_socket))
-            #risposta_dal_server.start()
-            #risposta_dal_server.join()
+            risposta_dal_server = threading.Thread(target=self.ricevi_risposta_server, args=(server_socket,client_socket))
+            risposta_dal_server.start()
+            risposta_dal_server.join()
         except socket.error as error:
             print(f"Errore di comunicazione con il server: {error}")
             sys.exit(1)
@@ -142,11 +141,9 @@ class LoadBalancer(object):
                     server_socket.close()
                     # Se la connessione riesce, il server è attivo, quindi aggiorno la flag in True
                     self.server_flags[i] = True
-                    print("True")
                 except (socket.timeout, ConnectionRefusedError):
                     # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
                     self.server_flags[i] = False
-                    print("False")
 
 
     def round_robin(self):

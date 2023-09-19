@@ -8,7 +8,7 @@ class Server(object):
 
     def __init__(self):
         self.ip = "127.0.0.1"
-        self.port = 5007
+        self.port = 5009
         self.server_socket = None
 
 
@@ -25,7 +25,6 @@ class Server(object):
         self.server_socket.listen()
         print(f"Server in ascolto su {self.ip}:{self.port}")
         self.connetto_il_loadbalancer()
-
 
 
     def connetto_il_loadbalancer(self):
@@ -58,36 +57,31 @@ class Server(object):
 
                 # salvo il contenuto del file
                 self.salvo_file_ricevuto(titolo, contenuto)
-
         except Exception as e:
             print("Errore durante la comunicazione con il loadbalancer:", e)
         finally:
             balancer_socket.close()
 
     def salvo_file_ricevuto(self, titolo, contenuto):
-
         # Genera un nome di file univoco basato su un timestamp
         timestamp = str(int(time.time()))  # Converti il timestamp in una stringa
-        json_filename = f"json_files_1/{timestamp}_{titolo}.json"
+        json_filename = f"json_files_3/{timestamp}_{titolo}.json"
 
         # Verifica se la directory "json_files" esiste, altrimenti creala
-        if not os.path.exists("json_files_1"):
-            os.makedirs("json_files_1")
+        if not os.path.exists("json_files_3"):
+            os.makedirs("json_files_3")
             # salvo il contenuto del file
             with open(json_filename, "w", encoding="utf-8") as json_file:
                 json_file.write(contenuto)
         else:
             # salvo il contenuto del file in un nuovo file all'interno della directory json_files
             with open(json_filename, "w", encoding="utf-8") as json_file:
-                    json_file.write(contenuto)
+                json_file.write(contenuto)
 
     def invia_risposte_al_loadbalancer(self, balancer_socket, titolo):
 
-        message_to_client = f" File ricevuto correttamente dal server 1: {titolo}"
+        message_to_client = f" File ricevuto correttamente dal server 3: {titolo}"
         balancer_socket.send(message_to_client.encode("utf-8"))
-
-
-
 
 
 if __name__ == "__main__":

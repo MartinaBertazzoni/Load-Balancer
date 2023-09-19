@@ -1,6 +1,9 @@
 import socket
 import threading
 import json
+import time
+import os
+
 class Server(object):
 
     def __init__(self):
@@ -25,17 +28,15 @@ class Server(object):
 
 
     def connetto_il_loadbalancer(self):
-        while True:
-            try:
+        try:
+            while True:
                 # Accetta le connessioni in entrata
                 balancer_socket, balancer_ip = self.server_socket.accept()
-                # Commento di riuscita connessione con il client
-                print("Connessione accettata da {}:{}".format(balancer_ip[0], balancer_ip[1]))
                 ricezione_dati = threading.Thread(target=self.ricevo_file_dal_loadbalancer, args=(balancer_socket,))
                 ricezione_dati.start()
                 ricezione_dati.join()
-            except Exception as e:
-                print("Errore durante la connessione con il loadbalancer:", e)
+        except Exception as e:
+            print("Errore durante la connessione con il loadbalancer:", e)
 
 
     def ricevo_file_dal_loadbalancer(self, balancer_socket):
@@ -49,17 +50,38 @@ class Server(object):
                 # Estrai il titolo e il contenuto dal file JSON
                 titolo = json_data.get("titolo", "")
                 contenuto = json_data.get("contenuto", "")
-                print(f"Titolo ricevuto dal client: {titolo}")
-                print(f"Contenuto ricevuto dal client: {contenuto}")
+
+                print(f" File ricevuto correttamente dal server: {titolo}")
+                # invia notifica al load balancer di avvenuta ricezione del file
+                self.invia_risposte_al_loadbalancer(balancer_socket, titolo)
+
+                # salvo il contenuto del file
+                self.salvo_file_ricevuto(titolo,contenuto)
         except Exception as e:
             print("Errore durante la comunicazione con il loadbalancer:", e)
         finally:
             balancer_socket.close()
 
-    def invia_risposte_al_loadbalancer(self):
+    def salvo_file_ricevuto(self, titolo, contenuto):
+        # Genera un nome di file univoco basato su un timestamp
+        timestamp = str(int(time.time()))  # Converti il timestamp in una stringa
+        json_filename = f"json_files_2/{timestamp}_{titolo}.json"
 
-        pass
+        # Verifica se la directory "json_files" esiste, altrimenti creala
+        if not os.path.exists("json_files_2"):
+            os.makedirs("json_files_2")
+            # salvo il contenuto del file
+            with open(json_filename, "w", encoding="utf-8") as json_file:
+                json_file.write(contenuto)
+        else:
+            # salvo il contenuto del file in un nuovo file all'interno della directory json_files
+            with open(json_filename, "w", encoding="utf-8") as json_file:
+                json_file.write(contenuto)
 
+    def invia_risposte_al_loadbalancer(self, balancer_socket, titolo):
+
+        message_to_client = f" File ricevuto correttamente dal server 2: {titolo}"
+        balancer_socket.send(message_to_client.encode("utf-8"))
 
 
 if __name__ == "__main__":

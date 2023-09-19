@@ -51,15 +51,11 @@ class Client(object):
                     invio_richieste = threading.Thread(target=self.invia_file_al_loadbalancer)
                     invio_richieste.start()
                     invio_richieste.join()
-                    #ricevi_risposte_dal_load = threading.Thread(target=self.ricevi_dati_dal_loadbalancer())
-                    #ricevi_risposte_dal_load.start()
-                    time.sleep(0.5)
-                    self.interfaccia_utente()
-
+                    ricevi_risposte_dal_load = threading.Thread(target=self.ricevi_dati_dal_loadbalancer())
+                    ricevi_risposte_dal_load.start()
+                    time.sleep(1)
                 else:
                     self.interfaccia_utente()
-            self.interfaccia_utente()
-        self.interfaccia_utente()
 
 
     def invia_file_al_loadbalancer(self):

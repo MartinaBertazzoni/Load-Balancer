@@ -8,7 +8,7 @@ class Server(object):
 
     def __init__(self):
         self.ip = "127.0.0.1"
-        self.port = 5007
+        self.port = 5001
         self.server_socket = None
 
 
@@ -81,15 +81,37 @@ class Server(object):
             with open(json_filename, "w", encoding="utf-8") as json_file:
                     json_file.write(contenuto)
 
+    def svuota_directory_json_files(self):
+        """
+        Metodo che svuota il contenuto della directory "json_files_1" ogni volta che si riavvia il codice
+        :return: None
+        """
+        json_files_directory = "json_files_1"
+        try:
+            for filename in os.listdir(json_files_directory):
+                file_path = os.path.join(json_files_directory, filename)
+                if os.path.isfile(file_path) and filename.endswith(".json"):
+                    os.remove(file_path)
+        except Exception as e:
+            print(f"Errore durante lo svuotamento della directory JSON: {e}")
+
+
     def invia_risposte_al_loadbalancer(self, balancer_socket, titolo):
+        """
+                Metodo che invia la risposta al load balancer di avvenuta ricezione del file
+
+                :param balancer_socket: socket del load balancer
+                :param titolo: titolo del file ricevuto
+                :return: None
+
+                """
 
         message_to_client = f" File ricevuto correttamente dal server 1: {titolo}"
         balancer_socket.send(message_to_client.encode("utf-8"))
 
 
 
-
-
 if __name__ == "__main__":
     server=Server()
+    server.svuota_directory_json_files()
     server.creo_socket_server()

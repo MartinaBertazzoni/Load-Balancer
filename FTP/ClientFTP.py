@@ -2,7 +2,7 @@ import socket
 import sys
 import os
 import threading
-import json
+import time
 
 
 class Client(object):
@@ -16,7 +16,9 @@ class Client(object):
 
     def avvio_client(self):
         self.avvio_client_socket()
-        self.interfaccia_utente()
+        interfaccia = threading.Thread(target=self.interfaccia_utente())
+        interfaccia.start()
+
 
 
     def avvio_client_socket(self):
@@ -49,12 +51,16 @@ class Client(object):
                     invio_richieste = threading.Thread(target=self.invia_file_al_loadbalancer)
                     invio_richieste.start()
                     invio_richieste.join()
-                    ricevi_risposte_dal_load = threading.Thread(target=self.ricevi_dati_dal_loadbalancer())
-                    ricevi_risposte_dal_load.start()
+                    #ricevi_risposte_dal_load = threading.Thread(target=self.ricevi_dati_dal_loadbalancer())
+                    #ricevi_risposte_dal_load.start()
+                    time.sleep(0.5)
+                    self.interfaccia_utente()
+
                 else:
-                    lista_file = os.listdir('./file/')
-                    print(lista_file)
-                    self.filepath = './file/' + str(input('Il file indicato non è presente nella cartella. Riprova : '))
+                    self.interfaccia_utente()
+            self.interfaccia_utente()
+        self.interfaccia_utente()
+
 
     def invia_file_al_loadbalancer(self):
         try:

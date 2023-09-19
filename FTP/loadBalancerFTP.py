@@ -15,7 +15,7 @@ class LoadBalancer(object):
         self.ip = '127.0.0.1'
         self.clients=[]
         self.servers = ["127.0.0.1", "127.0.0.1", "127.0.0.1"]
-        self.port_server = [5007, 5010, 5009]
+        self.port_server = [5007, 5008, 5009]
         self.current_server_index = 0
         self.current_server_port_index = 0
         self.server_flags = [False] * len(self.servers)
@@ -103,8 +103,11 @@ class LoadBalancer(object):
 
     def invia_ai_server(self,client_socket):
         try:
-            server_address = "127.0.0.1"
-            server_port = 5007
+            server_address, server_port = self.round_robin()
+            print(server_address, server_port)
+            # funzione che mette il log di richiesta del Client inoltrata allo specifico Server nel file loadbalancer.log al loadbalancer
+            logging.info(
+                f'Inoltro richiesta del Client {client_socket.getpeername()} al server {server_address}:{server_port}')
             # creo una socket per la connessione con il server
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             # mi connetto con il server
@@ -116,9 +119,9 @@ class LoadBalancer(object):
             server_socket.send(json_data.encode("utf-8"))
 
             # ricevo risposte dai server
-            risposta_dal_server = threading.Thread(target=self.ricevi_risposta_server, args=(server_socket,client_socket))
-            risposta_dal_server.start()
-            risposta_dal_server.join()
+            #risposta_dal_server = threading.Thread(target=self.ricevi_risposta_server, args=(server_socket,client_socket))
+            #risposta_dal_server.start()
+            #risposta_dal_server.join()
         except socket.error as error:
             print(f"Errore di comunicazione con il server: {error}")
             sys.exit(1)
@@ -144,8 +147,32 @@ class LoadBalancer(object):
                     # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
                     self.server_flags[i] = False
                     print("False")
-            time.sleep(1)
 
+
+    def round_robin(self):
+        """
+        Algoritmo di ROUND ROBIN che inoltra a turno una richiesta del client a ciascun server.
+        Quando raggiunge la fine dell'elenco, il sistema di bilanciamento del carico torna indietro e scende nuovamente nell'elenco
+        """
+        while True:
+
+            # Scegli il prossimo server nell'ordine circolare
+            server_address = self.servers[self.current_server_index]
+            server_port = self.port_server[self.current_server_port_index]
+
+            # Verifica se il server selezionato è attivo (flag True)
+            if self.server_flags[self.current_server_index]:
+                break  # Esci dal ciclo se il server è attivo
+
+            # Se il server non è attivo, passa al successivo nell'ordine
+            self.current_server_index = (self.current_server_index + 1) % len(self.servers)
+            self.current_server_port_index = (self.current_server_port_index + 1) % len(self.port_server)
+
+        # Passa al successivo nell'ordine per la prossima richiesta
+        self.current_server_index = (self.current_server_index + 1) % len(self.servers)
+        self.current_server_port_index = (self.current_server_port_index + 1) % len(self.port_server)
+
+        return server_address, server_port  # Restituisci l'indirizzo del server attivo
 
     def ricevi_risposta_server(self,server_socket, client_socket):
         try:

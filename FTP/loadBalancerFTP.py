@@ -1,7 +1,7 @@
 import sys
 import socket
 import threading
-import time
+import json
 
 class LoadBalancer(object):
     def __init__(self):
@@ -48,11 +48,23 @@ class LoadBalancer(object):
     def ricevo_file_dal_client(self, client_socket):
         try:
             while True:
-                file = client_socket.recv(1024).decode("utf-8")
-                if not file:
+                # riceve il nome del file
+                self.filepath=client_socket.recv(4096).decode("utf-8")
+                print("il path", self.filepath)
+                if not self.filepath:
                     break
-                # #creo un thread che invia i file ai server
-                invia_file_ai_server = threading.Thread(target=self.invia_ai_server, args=(file, client_socket))
+                json_data_encoded = client_socket.recv(4096).decode("utf-8")
+                if not json_data_encoded:
+                    break
+                # Decodifica il file JSON
+                json_data = json.loads(json_data_encoded)
+                # Estrai il titolo e il contenuto dal file JSON
+                titolo = json_data.get("titolo", "")
+                contenuto = json_data.get("contenuto", "")
+                print(f"Titolo ricevuto dal client: {titolo}")
+                print(f"Contenuto ricevuto dal client: {contenuto}")
+                # creo un thread che invia i file ai server
+                invia_file_ai_server = threading.Thread(target=self.invia_ai_server, args=(client_socket,))
                 invia_file_ai_server.start()
                 invia_file_ai_server.join()
         except Exception as e:
@@ -61,7 +73,7 @@ class LoadBalancer(object):
             client_socket.close()
 
 
-    def invia_ai_server(self, file, client_socket):
+    def invia_ai_server(self,client_socket):
         try:
             server_address = "127.0.0.1"
             server_port = 5007
@@ -69,17 +81,20 @@ class LoadBalancer(object):
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             # mi connetto con il server
             server_socket.connect((server_address, server_port))
-            server_socket.send(file.encode("utf-8"))
-            print("File inoltrato al server ")
+
+            #DA IMPLEMENTARE
+            with open(self.filepath, 'r', encoding='utf-8') as file:
+                json_data = file.read()
+            server_socket.send(json_data.encode("utf-8"))
+
             # ricevo risposte dai server
             risposta_dal_server = threading.Thread(target=self.ricevi_risposta_server, args=(server_socket,client_socket))
             risposta_dal_server.start()
             risposta_dal_server.join()
-
         except socket.error as error:
             print(f"Errore di comunicazione con il server: {error}")
             sys.exit(1)
-        pass
+
 
     def ricevi_risposta_server(self,server_socket, client_socket):
         try:

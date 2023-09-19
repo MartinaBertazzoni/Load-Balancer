@@ -2,7 +2,7 @@ import socket
 import sys
 import os
 import threading
-import time
+import json
 
 
 class Client(object):
@@ -54,13 +54,20 @@ class Client(object):
                 else:
                     lista_file = os.listdir('./file/')
                     print(lista_file)
-                    self.filepath = './file/' + str(input('Il file indicato non è presente nella cartella. Riprova : '))
+                    nomefile = str(input('Inserisci il nome del file da trasferire fra quelli elencati:  '))
+                    self.file_name = './file/' + nomefile
 
 
     def invia_file_al_loadbalancer(self):
         try:
-            self.client_socket.send(self.filepath.encode("utf-8"))
-            print("File inoltrato al load balancer ")
+            # Apri il file JSON e leggine il contenuto come stringa
+            with open(self.filepath, 'r', encoding='utf-8') as file:
+                json_data = file.read()
+            self.client_socket.send(self.filepath.encode())
+            # Invia il file JSON come stringa codificata al load balancer
+            self.client_socket.send(json_data.encode("utf-8"))
+            print(f"File JSON inoltrato al load balancer")
+            print(json_data)
         except socket.error as error:
             print(f"Errore di comunicazione con il loadbalancer: {error}")
             sys.exit(1)

@@ -1,5 +1,6 @@
 import socket
 import threading
+import json
 class Server(object):
 
     def __init__(self):
@@ -40,12 +41,19 @@ class Server(object):
     def ricevo_file_dal_loadbalancer(self, balancer_socket):
         try:
             while True:
-                file = balancer_socket.recv(1024).decode("utf-8")
-                if not file:
+                json_data_encoded = balancer_socket.recv(4096).decode("utf-8")
+                if not json_data_encoded:
                     break
-                print(" Ho ricevuto il file: ", file)
-                message_to_load = f" File ricevuto correttamente dal server: {file}"
-                balancer_socket.send(message_to_load.encode("utf-8"))
+                # Decodifica il file JSON
+                json_data = json.loads(json_data_encoded)
+
+                # Estrai il titolo e il contenuto dal file JSON
+                titolo = json_data.get("titolo", "")
+                contenuto = json_data.get("contenuto", "")
+
+                print(f"Titolo ricevuto dal client: {titolo}")
+                print(f"Contenuto ricevuto dal client: {contenuto}")
+
         except Exception as e:
             print("Errore durante la comunicazione con il loadbalancer:", e)
         finally:

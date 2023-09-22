@@ -2,23 +2,36 @@ import socket
 import sys
 import os
 import threading
+import random
 import time
-
 
 class Client(object):
 
     def __init__(self):
         self.loadBalancer_ip = "127.0.0.1"
-        self.loadBalancer_port = "60003"
+        self.loadBalancer_port = "60004"
         self.filepath = None
         self.client_socket = None
+        self.file_da_inviare = []
+        self.counter_richieste = 0
 
 
     def avvio_client(self):
-        self.avvio_client_socket()
-        interfaccia = threading.Thread(target=self.interfaccia_utente())
-        interfaccia.start()
+        """
+        Metodo che avvia il client e i thread di invio file e ricezione delle risposte
+        :return: None
 
+        """
+        self.avvio_client_socket()
+        interfaccia = threading.Thread(target=self.interfaccia_utente)
+        invio_file_al_loadbalancer = threading.Thread(target=self.invia_file_al_loadbalancer)
+        ricevi_risposta = threading.Thread(target=self.ricevi_dati_dal_loadbalancer)
+        interfaccia.start()
+        invio_file_al_loadbalancer.start()
+        ricevi_risposta.start()
+        interfaccia.join()
+        invio_file_al_loadbalancer.join()
+        ricevi_risposta.join()
 
 
     def avvio_client_socket(self):
@@ -29,9 +42,8 @@ class Client(object):
         """
         try:
             self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.client_socket.connect(("127.0.0.1", 60003))
+            self.client_socket.connect(("127.0.0.1", 60002))
             print(f"Connessione al server {self.loadBalancer_ip}:{self.loadBalancer_port} stabilita.")
-
         except:
             print(f"Errore durante la connessione al server: {socket.error}")
             sys.exit(1)
@@ -42,34 +54,47 @@ class Client(object):
         Metodo di interfaccia con l'utente, che richiede in input il nome del file da inviare
         :return: None
         """
-        try:
-            while True:
-                # Creo una lista con tutti i nomi dei file contenuti all'interno della cartella indata
-                lista_file = os.listdir('./file/')
-                print(lista_file)
-                if len(lista_file) == 0:
-                    # se la cartella è vuota blocca il codice e restituisce l'errore
-                    raise Exception("La cartella non ha file al suo interno.")
-                else:
-                    nomefile = str(input('Inserisci il nome del file da trasferire fra quelli elencati:  '))
-                    if nomefile == 'exit':
-                        print("Chiusura della connessione con il server...")
-                        break
-                    if nomefile in lista_file:
-                        self.filepath = './file/' + nomefile
-                        invio_richieste = threading.Thread(target=self.invia_file_al_loadbalancer)
-                        invio_richieste.start()
-                        invio_richieste.join()
-                        ricevi_risposte_dal_load = threading.Thread(target=self.ricevi_dati_dal_loadbalancer())
-                        ricevi_risposte_dal_load.start()
-                        time.sleep(1)
-                    else:
-                        self.interfaccia_utente()
-        except Exception as e:
-            print("Errore nella scrittura dell'input; riprova ", e)
-            self.interfaccia_utente()
+        while True:
+            time.sleep(1)
+            # Creo una lista con tutti i nomi dei file contenuti all'interno della cartella indata
+            lista_file = os.listdir('./file/')
+            print("La lista dei file disponibili è: ", lista_file)
+            if len(lista_file) == 0:  # se la cartella è vuota blocca il codice e restituisce l'errore
+                raise Exception("La cartella non ha file al suo interno.")
+            comando = input(" Digita il comando:  ")
+            if comando == 'exit':  # se inserisco exit, si chiude la connessione
+                print("Chiusura della connessione con il server...")
+                break
+            if comando == 'FTP':
+                try:
+                    numero_file = int(input('Inserisci il numero di file da trasferire: '))   #inserisco numero file da inviare
+                    for numero in range(numero_file):   #itero per un numero di volte pari al numero_file
+                        nome_file_scelto = self.scegli_file_random()
+                        filepath = './file/' + nome_file_scelto
+                        self.file_da_inviare.append(filepath)
+                    print(" I file da inviare sono: ", self.file_da_inviare)  # printo i file scelti da inviare
+
+                except Exception as e:
+                    print("Errore nella scrittura dell'input; riprova: ", e)
+            else:
+                print("Errore nella scrittura dell'input; riprova: ", e)
 
 
+
+
+    def scegli_file_random(self):
+        """
+        Metodo che sceglie randomicamente un file dalla lista dei file considerata
+
+        :return: file_casuale
+
+        """
+        # stampo la lista dei file fra cui scegliere
+        lista_file = os.listdir('./file/')
+        # scelgo casualmente uno fra i file nella lista
+        file_casuale = random.choice(list(lista_file))
+
+        return file_casuale
 
     def invia_file_al_loadbalancer(self):
         """
@@ -78,14 +103,18 @@ class Client(object):
         :return: None
         """
         try:
-            # Apro il file JSON, leggo il contenuto e lo invio al load balancer
-            with open(self.filepath, 'r', encoding='utf-8') as file:
-                json_data = file.read()
-            # invio il path del file
-            self.client_socket.send(self.filepath.encode())
-            # Invia il contenuto del file JSON come stringa codificata al load balancer
-            self.client_socket.send(json_data.encode("utf-8"))
-            print(f"File JSON inoltrato al load balancer: \n", json_data)
+            while True:
+                if len(self.file_da_inviare) != 0:
+                    filepath = self.file_da_inviare[0]
+                    self.file_da_inviare.pop(0)
+
+                    # Apro il file JSON, leggo il contenuto e lo invio al load balancer
+                    with open(filepath, 'r', encoding='utf-8') as file_json:
+                        json_data = file_json.read()
+                    self.client_socket.send(filepath.encode())  # invio il path del file
+                    time.sleep(0.3)
+                    print(f"File JSON inoltrato al load balancer: \n", filepath)
+                    self.counter_richieste += 1
         except socket.error as error:
             print(f"Errore di comunicazione con il loadbalancer: {error}")
             sys.exit(1)

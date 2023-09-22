@@ -12,19 +12,20 @@ class Server(object):
         self.server_socket = None
 
 
+
     def creo_socket_server(self):
         """
         Funzione che crea la socket del server e crea un thread che rimane in ascolto per ricevere i comandi dal load balancer
         """
         # creo una socket server
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # collego la socket al server
         self.server_socket.bind((self.ip, self.port))
         # metto in ascolto il server
         self.server_socket.listen()
         print(f"Server in ascolto su {self.ip}:{self.port}")
         self.connetto_il_loadbalancer()
+
 
 
     def connetto_il_loadbalancer(self):
@@ -34,7 +35,7 @@ class Server(object):
                 balancer_socket, balancer_ip = self.server_socket.accept()
                 ricezione_dati = threading.Thread(target=self.ricevo_file_dal_loadbalancer, args=(balancer_socket,))
                 ricezione_dati.start()
-                ricezione_dati.join()
+
         except Exception as e:
             print("Errore durante la connessione con il loadbalancer:", e)
 
@@ -42,30 +43,36 @@ class Server(object):
     def ricevo_file_dal_loadbalancer(self, balancer_socket):
         try:
             while True:
-                file_name = balancer_socket.recv(4096).decode("utf-8")
-                if not file_name:
+                filepath = balancer_socket.recv(4096).decode("utf-8")
+                if not filepath:
                     break
+
                 # Decodifica il file JSON
-                json_data = json.loads(file_name)
+                json_data = json.loads(filepath)
                 # Estrai il titolo e il contenuto dal file JSON
                 titolo = json_data.get("titolo", "")
                 contenuto = json_data.get("contenuto", "")
-
                 print(f" File ricevuto correttamente dal server: {titolo}")
+
                 # invia notifica al load balancer di avvenuta ricezione del file
                 self.invia_risposte_al_loadbalancer(balancer_socket, titolo)
 
                 # salvo il contenuto del file
                 self.salvo_file_ricevuto(titolo, contenuto)
+                print(f"File {titolo} salvato correttamente ")
+
         except Exception as e:
             print("Errore durante la comunicazione con il loadbalancer:", e)
         finally:
             balancer_socket.close()
 
+
     def salvo_file_ricevuto(self, titolo, contenuto):
+
         # Genera un nome di file univoco basato su un timestamp
         timestamp = str(int(time.time()))  # Converti il timestamp in una stringa
-        json_filename = f"json_files_3/{timestamp}_{titolo}.json"
+        json_filename = f"json_files_1/{timestamp}_{titolo}.json"
+
         # Verifica se la directory "json_files" esiste, altrimenti creala
         if not os.path.exists("json_files_3"):
             os.makedirs("json_files_3")
@@ -75,9 +82,14 @@ class Server(object):
         else:
             # salvo il contenuto del file in un nuovo file all'interno della directory json_files
             with open(json_filename, "w", encoding="utf-8") as json_file:
-                json_file.write(contenuto)
+                    json_file.write(contenuto)
+
 
     def svuota_directory_json_files(self):
+        """
+        Metodo che svuota il contenuto della directory "json_files_1" ogni volta che si riavvia il codice
+        :return: None
+        """
         json_files_directory = "json_files_3"
         try:
             for filename in os.listdir(json_files_directory):
@@ -87,16 +99,20 @@ class Server(object):
         except Exception as e:
             print(f"Errore durante lo svuotamento della directory JSON: {e}")
 
+
     def invia_risposte_al_loadbalancer(self, balancer_socket, titolo):
         """
-        Metodo che invia la risposta al load balancer di avvenuta ricezione del file
+                Metodo che invia la risposta al load balancer di avvenuta ricezione del file
 
-        :param balancer_socket: socket del load balancer
-        :param titolo: titolo del file ricevuto
-        :return: None
-        """
+                :param balancer_socket: socket del load balancer
+                :param titolo: titolo del file ricevuto
+                :return: None
+
+                """
+
         message_to_client = f" File ricevuto correttamente dal server 3: {titolo}"
         balancer_socket.send(message_to_client.encode("utf-8"))
+
 
 
 if __name__ == "__main__":

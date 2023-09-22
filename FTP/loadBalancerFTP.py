@@ -38,8 +38,6 @@ class LoadBalancer(object):
         self.connetto_il_client()
 
 
-
-
     def creo_socket_loadBalancer(self):
         """
         Metodo che crea la socket del load balancer, e la mette in ascolto

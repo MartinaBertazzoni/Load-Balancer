@@ -55,12 +55,13 @@ class Client(object):
         :return: None
         """
         while True:
-            time.sleep(1)
+            time.sleep(2)
             # Creo una lista con tutti i nomi dei file contenuti all'interno della cartella indata
             lista_file = os.listdir('./file/')
             print("La lista dei file disponibili è: ", lista_file)
             if len(lista_file) == 0:  # se la cartella è vuota blocca il codice e restituisce l'errore
                 raise Exception("La cartella non ha file al suo interno.")
+
             comando = input(" Digita il comando:  ")
             if comando == 'exit':  # se inserisco exit, si chiude la connessione
                 print("Chiusura della connessione con il server...")
@@ -72,8 +73,6 @@ class Client(object):
                         nome_file_scelto = self.scegli_file_random()
                         filepath = './file/' + nome_file_scelto
                         self.file_da_inviare.append(filepath)
-                    print(" I file da inviare sono: ", self.file_da_inviare)  # printo i file scelti da inviare
-
                 except Exception as e:
                     print("Errore nella scrittura dell'input; riprova: ", e)
             else:
@@ -128,6 +127,7 @@ class Client(object):
         """
         try:
             message_from_load = self.client_socket.recv(1024).decode("utf-8")
+            self.counter_richieste -= 1
             print(message_from_load)
         except socket.error as error:
             print(f"Impossibile ricevere dati dal loadbalancer: {error}")

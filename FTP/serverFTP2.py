@@ -10,8 +10,12 @@ class Server(object):
         self.ip = "127.0.0.1"
         self.port = 5002
         self.server_socket = None
+        self.balancer_socket = None
 
-
+    def avvio_server(self):
+        self.svuota_directory_json_files() #aggiungi creazione file se non è presente!!!!
+        self.creo_socket_server()
+        self.connetto_il_loadbalancer()
 
     def creo_socket_server(self):
         """
@@ -32,18 +36,19 @@ class Server(object):
         try:
             while True:
                 # Accetta le connessioni in entrata
-                balancer_socket, balancer_ip = self.server_socket.accept()
-                ricezione_dati = threading.Thread(target=self.ricevo_file_dal_loadbalancer, args=(balancer_socket,))
+                self.balancer_socket, balancer_ip = self.server_socket.accept()
+                ricezione_dati = threading.Thread(target=self.ricevo_file_dal_loadbalancer)
                 ricezione_dati.start()
+                ricezione_dati.join()
 
         except Exception as e:
             print("Errore durante la connessione con il loadbalancer:", e)
 
 
-    def ricevo_file_dal_loadbalancer(self, balancer_socket):
+    def ricevo_file_dal_loadbalancer(self):
         try:
             while True:
-                filepath = balancer_socket.recv(4096).decode("utf-8")
+                filepath = self.balancer_socket.recv(4096).decode("utf-8")
                 if not filepath:
                     break
 
@@ -55,7 +60,7 @@ class Server(object):
                 print(f" File ricevuto correttamente dal server: {titolo}")
 
                 # invia notifica al load balancer di avvenuta ricezione del file
-                self.invia_risposte_al_loadbalancer(balancer_socket, titolo)
+                self.invia_risposte_al_loadbalancer(titolo)
 
                 # salvo il contenuto del file
                 self.salvo_file_ricevuto(titolo, contenuto)
@@ -64,7 +69,7 @@ class Server(object):
         except Exception as e:
             print("Errore durante la comunicazione con il loadbalancer:", e)
         finally:
-            balancer_socket.close()
+            self.balancer_socket.close()
 
 
     def salvo_file_ricevuto(self, titolo, contenuto):
@@ -100,7 +105,7 @@ class Server(object):
             print(f"Errore durante lo svuotamento della directory JSON: {e}")
 
 
-    def invia_risposte_al_loadbalancer(self, balancer_socket, titolo):
+    def invia_risposte_al_loadbalancer(self, titolo):
         """
                 Metodo che invia la risposta al load balancer di avvenuta ricezione del file
 
@@ -111,11 +116,10 @@ class Server(object):
                 """
 
         message_to_client = f" File ricevuto correttamente dal server 2: {titolo}"
-        balancer_socket.send(message_to_client.encode("utf-8"))
+        self.balancer_socket.send(message_to_client.encode("utf-8"))
 
 
 
 if __name__ == "__main__":
     server=Server()
-    server.svuota_directory_json_files()
-    server.creo_socket_server()
+    server.avvio_server()

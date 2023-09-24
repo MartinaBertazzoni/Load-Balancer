@@ -4,6 +4,7 @@ import os
 import threading
 import random
 import time
+import json
 
 class Client(object):
 
@@ -107,10 +108,15 @@ class Client(object):
                     filepath = self.file_da_inviare[0]
                     self.file_da_inviare.pop(0)
 
-                    # Apro il file JSON, leggo il contenuto e lo invio al load balancer
+                    # Apro il file JSON e lo converto in un dizionario
                     with open(filepath, 'r', encoding='utf-8') as file_json:
-                        json_data = file_json.read()
-                    self.client_socket.send(filepath.encode())  # invio il path del file
+                        json_data = json.load(file_json)
+                    #aggiungo una chiave che identifica il tipo di richiesta
+                    json_data["request_type"]='file_di_testo'
+                    #converto in una stringa di modo che possa eesere mandato attraverso la socket
+                    json_data_to_send=json.dumps(json_data)
+                    #invio il file json formattato come una stringa
+                    self.client_socket.send(json_data_to_send.encode())  
                     time.sleep(0.3)
                     print(f"File JSON inoltrato al load balancer: \n", filepath)
                     self.counter_richieste += 1
@@ -126,9 +132,10 @@ class Client(object):
         :return: None
         """
         try:
-            message_from_load = self.client_socket.recv(1024).decode("utf-8")
-            self.counter_richieste -= 1
-            print(message_from_load)
+            while True:
+                message_from_load = self.client_socket.recv(1024).decode("utf-8")
+                self.counter_richieste -= 1
+                print(message_from_load)
         except socket.error as error:
             print(f"Impossibile ricevere dati dal loadbalancer: {error}")
             sys.exit(1)

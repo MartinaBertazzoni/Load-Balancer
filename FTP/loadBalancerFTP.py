@@ -18,7 +18,7 @@ class LoadBalancer(object):
         self.current_server_index = 0
         self.current_server_port_index = 0
         self.server_flags = [False] * len(self.servers)
-
+        self.numero_della_richiesta=0
         self.monitoraggio_stato_server = threading.Thread(target=self.monitoraggio_server)
         self.monitoraggio_stato_server.daemon = True
         self.monitoraggio_stato_server.start()
@@ -85,20 +85,24 @@ class LoadBalancer(object):
         try:
             while True:
                 # ricevo il file
-                filepath = client_socket.recv(4096).decode("utf-8")
-                if not filepath:
+                file_ricevuto = client_socket.recv(4096).decode("utf-8")
+                if not file_ricevuto:
                     break
-                self.nomi_file_ricevuti.append(filepath)
-                print("Ho ricevuto il file", filepath)
+                #lo converto in un dizionario
+                file=json.loads(file_ricevuto)
+                titolo = file.get("titolo", "")
+                self.nomi_file_ricevuti.append(titolo)
 
-                self.invia_ai_server(client_socket,filepath)
+                print("Ho ricevuto il file",titolo)
+
+                self.invia_ai_server(client_socket,file,titolo)
 
         except Exception as e:
             print("Errore durante la comunicazione con il client:", e)
 
 
 
-    def invia_ai_server(self, client_socket,filepath):
+    def invia_ai_server(self, client_socket,file,titolo):
         """
         Metodo che invia il file JSON al server scelto; dopo aver ottenuto l'ip e la porta del server considerato
         tramite il metodo Round Robin, il load balancer viene connesso al server in questione e gli invia
@@ -117,13 +121,14 @@ class LoadBalancer(object):
             # connetto il load balancer al server scelto
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server_socket.connect((server_address, server_port))
+            self.numero_della_richiesta+=1
+            file['numero_richiesta']=self.numero_della_richiesta
+            print(file)
+            print("Ho inviato il file al server: ", titolo)
+            file_da_inviare=json.dumps(file)
+            server_socket.send(file_da_inviare.encode("utf-8"))
 
-            with open(filepath, 'r', encoding='utf-8') as file:
-                contenuto = file.read()
-            print("Ho inviato il file al server: ", filepath)
-            server_socket.send(contenuto.encode("utf-8"))
-
-            # ricevo risposta dal server
+            # ricevo risposta dal server (da controllare per farla funzionare)
             self.ricevi_risposta_server(server_socket, client_socket)
         except socket.error as error:
             print(f"Errore di comunicazione con il server: {error}")

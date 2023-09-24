@@ -14,6 +14,7 @@ class Server(object):
 
 
     def avvio_server(self):
+
         self.svuota_directory_json_files() #aggiungi creazione file se non è presente!!!!
         self.creo_socket_server()
         self.connetto_il_loadbalancer()
@@ -62,12 +63,12 @@ class Server(object):
     def ricevo_file_dal_loadbalancer(self):
         try:
             while True:
-                filepath = self.balancer_socket.recv(4096).decode("utf-8")
-                if not filepath:
+                file= self.balancer_socket.recv(4096).decode("utf-8")
+                if not file:
                     break
 
-                # Decodifica il file JSON
-                json_data = json.loads(filepath)
+                # Decodifica il file JSON e lo mette in forma di dizionario
+                json_data = json.loads(file)
                 # Estrai il titolo e il contenuto dal file JSON
                 titolo = json_data.get("titolo", "")
                 contenuto = json_data.get("contenuto", "")
@@ -111,6 +112,9 @@ class Server(object):
         """
         json_files_directory = "json_files_1"
         try:
+            # Crea la cartella se non esiste
+            if not os.path.exists(json_files_directory):
+                os.makedirs(json_files_directory)
             for filename in os.listdir(json_files_directory):
                 file_path = os.path.join(json_files_directory, filename)
                 if os.path.isfile(file_path) and filename.endswith(".json"):

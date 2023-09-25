@@ -3,6 +3,7 @@ import threading
 import json
 import os
 import time
+import psutil
 
 class Server(object):
 
@@ -10,7 +11,12 @@ class Server(object):
         self.ip = "127.0.0.1"
         self.port = 5001
         self.server_socket = None
-        self.balancer_socket = None
+        self.active_requests=[]
+        self.SOVRACCARICO=False
+        self.LIMITE_CPU_percentuale=0.059#la percentuale di utilizzo prima delle richieste è 0.054
+        monitoraggio_status=threading.Thread(target=self.monitoraggio_carico_server)
+        monitoraggio_status.daemon=True
+        monitoraggio_status.start()
 
 
     def avvio_server(self):
@@ -47,46 +53,72 @@ class Server(object):
         """
         try:
             while True:
-                # Accetta le connessioni in entrata
-                self.balancer_socket, balancer_ip = self.server_socket.accept()   #accetto le richieste (Accetta ogni volta che ho una richiesta)
-                ricezione_dati = threading.Thread(target=self.ricevo_file_dal_loadbalancer)
-                ricezione_dati.start()
-                ricezione_dati.join()
-                # Serve thread per far svolgere i compiti al server. Ad esempio, vogliamo che il server
-                # conti le lettere "A" contenute nel testo
+                self.server_socket.settimeout(1)
+                try:
+                    # Accetta le connessioni in entrata
+                    #l'ho chiamato richiesta_socket, ma sarebbe la socket della richiesta
+                    richiesta_socket, richiesta_ip = self.server_socket.accept()   #accetto le richieste (Accetta ogni volta che ho una richiesta)
+                    self.active_requests.append(richiesta_socket)
+                    ricezione_dati = threading.Thread(target=self.ricevo_file_dal_loadbalancer, args=(richiesta_socket,))
+                    ricezione_dati.start()
 
-                # Quindi ho 1 thread per accettare le richieste,
+                    # Serve thread per far svolgere i compiti al server. Ad esempio, vogliamo che il server
+                    # conti le lettere "A" contenute nel testo
+
+                    # Quindi ho 1 thread per accettare le richieste,
+                except socket.timeout:
+                    continue
+                if richiesta_socket not in self.active_requests:
+                    ricezione_dati.join()
+
+
         except Exception as e:
             print("Errore durante la connessione con il loadbalancer:", e)
 
 
-    def ricevo_file_dal_loadbalancer(self):
+    def ricevo_file_dal_loadbalancer(self,richiesta_socket):
         try:
             while True:
-                file= self.balancer_socket.recv(4096).decode("utf-8")
+                file= richiesta_socket.recv(4096).decode("utf-8")
                 if not file:
                     break
 
                 # Decodifica il file JSON e lo mette in forma di dizionario
                 json_data = json.loads(file)
-                # Estrai il titolo e il contenuto dal file JSON
-                titolo = json_data.get("titolo", "")
-                contenuto = json_data.get("contenuto", "")
-                print(f" File ricevuto correttamente dal server: {titolo}")
+                #capisco il tipo di rischiesta 
+                request_type=json_data.get("request_type","")
+                if request_type=='file_di_testo':
+                    # Estrai il titolo e il contenuto dal file JSON
+                    titolo = json_data.get("titolo", "")
+                    contenuto = json_data.get("contenuto", "")
+                    print(f" File ricevuto correttamente dal server: {titolo}")
 
-                # invia notifica al load balancer di avvenuta ricezione del file
-                self.invia_risposte_al_loadbalancer(titolo)
-
-                # salvo il contenuto del file
-                self.salvo_file_ricevuto(titolo, contenuto)
-                print(f"File {titolo} salvato correttamente ")
-
+                    # invia notifica al load balancer di avvenuta ricezione del file
+                    #self.invia_risposte_al_loadbalancer(titolo,richiesta_socket)
+                    self.conta_a(contenuto)
+                    # salvo il contenuto del file
+                    self.salvo_file_ricevuto(titolo, contenuto)
+                    print(f"File {titolo} salvato correttamente ")
+                else:
+                    status=bytes([self.SOVRACCARICO])
+                    richiesta_socket.send(status)
+                    break
         except Exception as e:
             print("Errore durante la comunicazione con il loadbalancer:", e)
         finally:
-            self.balancer_socket.close()
+            self.active_requests.remove(richiesta_socket)
+            richiesta_socket.close()
 
-
+    def conta_a(self, contenuto):
+        # Funzione che ricerca le a in contenuto, simulando una situazione di sovraccarico per il server.
+        count_a = 0
+        #ho utilizzato range di len, perchè il timesleep non simula il carico. Infatti mette a dormire il processo e quindi non grava sulla cpu
+        for i in range(len(contenuto)):
+            if contenuto[i] == 'a' or contenuto[i]== 'A':
+                count_a += 1
+            time.sleep(0.2)
+            
+    
     def salvo_file_ricevuto(self, titolo, contenuto):
 
         # Genera un nome di file univoco basato su un timestamp
@@ -123,7 +155,7 @@ class Server(object):
             print(f"Errore durante lo svuotamento della directory JSON: {e}")
 
 
-    def invia_risposte_al_loadbalancer(self, titolo):
+    def invia_risposte_al_loadbalancer(self, titolo,richiesta_socket):
         """
                 Metodo che invia la risposta al load balancer di avvenuta ricezione del file
 
@@ -134,9 +166,27 @@ class Server(object):
                 """
 
         message_to_client = f" File ricevuto correttamente dal server 1: {titolo}"
-        self.balancer_socket.send(message_to_client.encode("utf-8"))
+        richiesta_socket.send(message_to_client.encode("utf-8"))
 
 
+    def monitoraggio_carico_server(self):
+        # controllo il carico della cpu per il server ogni secondo
+        while True:
+            process = psutil.Process(os.getpid())  # Get the current process (your script)
+            memory_info = process.memory_info()
+
+            # Memoria virtuale totale utilizzata dal processo (in byte)
+            self.virtual_memory_used = memory_info.vms
+            # Percentage of total system memory used by the process
+            memory_percent = (memory_info.vms / psutil.virtual_memory().total) * 100
+            print(memory_percent)
+            # se il carico della cpu è maggiore del limite, il server è sovraccarico
+            if memory_percent > self.LIMITE_CPU_percentuale:
+                self.SOVRACCARICO = True
+            # altrimenti il server non è sovraccarico
+            else:
+                self.SOVRACCARICO = False
+            
 
 if __name__ == "__main__":
     server=Server()

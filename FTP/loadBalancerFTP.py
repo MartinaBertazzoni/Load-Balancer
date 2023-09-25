@@ -17,7 +17,8 @@ class LoadBalancer(object):
         self.port_server = [5001, 5002, 5003]
         self.current_server_index = 0
         self.current_server_port_index = 0
-        self.server_flags = [False] * len(self.servers)
+        self.server_flags_connection = [False] * len(self.servers)
+        self.server_sovracarichi=[False] * len(self.servers)
         self.numero_della_richiesta=0
         self.monitoraggio_stato_server = threading.Thread(target=self.monitoraggio_server)
         self.monitoraggio_stato_server.daemon = True
@@ -123,13 +124,13 @@ class LoadBalancer(object):
             server_socket.connect((server_address, server_port))
             self.numero_della_richiesta+=1
             file['numero_richiesta']=self.numero_della_richiesta
-            print(file)
-            print("Ho inviato il file al server: ", titolo)
+            
+            print(f"Ho inviato il file al server{server_port} status:{self.server_sovracarichi[self.current_server_port_index]} ", titolo)
             file_da_inviare=json.dumps(file)
             server_socket.send(file_da_inviare.encode("utf-8"))
-
+            server_socket.close()
             # ricevo risposta dal server (da controllare per farla funzionare)
-            self.ricevi_risposta_server(server_socket, client_socket)
+            #self.ricevi_risposta_server(server_socket, client_socket)
         except socket.error as error:
             print(f"Errore di comunicazione con il server: {error}")
             sys.exit(1)
@@ -149,12 +150,23 @@ class LoadBalancer(object):
                 server_socket.settimeout(1)  # Timeout per la connessione
                 try:
                     server_socket.connect((server_address, self.port_server[i]))
+                    #creo il messaggio di richiesta di monitoraggio
+                    messaggio_di_monitoraggio={'request_type':'richiesta_status'}
+                    #lo trasformo in una stringa
+                    richiesta_status=json.dumps(messaggio_di_monitoraggio)
+                    #lo mando
+                    server_socket.send(richiesta_status.encode())
+                    #ricevo la risposta boolena se è in sovracarico(TRUE) o se non è in sovracrico(false)
+                    status= server_socket.recv(1)
+                    #lo converto da byte a valore booleano
+                    status= bool(int.from_bytes(status, byteorder='big'))
+                    self.server_sovracarichi[i]=status
                     server_socket.close()
                     # Se la connessione riesce, il server è attivo, quindi aggiorno la flag in True
-                    self.server_flags[i] = True
+                    self.server_flags_connection[i] = True
                 except (socket.timeout, ConnectionRefusedError):
                     # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
-                    self.server_flags[i] = False
+                    self.server_flags_connection[i] = False
 
 
     def round_robin(self):
@@ -171,11 +183,12 @@ class LoadBalancer(object):
             # Scegli il prossimo server nell'ordine circolare
             server_address = self.servers[self.current_server_index]
             server_port = self.port_server[self.current_server_port_index]
-
+        
             # Verifica se il server selezionato è attivo (flag True)
-            if self.server_flags[self.current_server_index]:
+            if self.server_flags_connection[self.current_server_index]:
                 break  # Esci dal ciclo se il server è attivo
-
+            if self.server_sovracarichi[self.current_server_index]==True:
+                break
             # Se il server non è attivo, passa al successivo nell'ordine
             self.current_server_index = (self.current_server_index + 1) % len(self.servers)
             self.current_server_port_index = (self.current_server_port_index + 1) % len(self.port_server)

@@ -13,7 +13,7 @@ class Server(object):
         self.server_socket = None
         self.active_requests=[]
         self.SOVRACCARICO=False
-        self.LIMITE_CPU_percentuale=0.059#la percentuale di utilizzo prima delle richieste è 0.054
+        self.LIMITE_CPU_percentuale=0.06#la percentuale di utilizzo prima delle richieste è 0.054
         monitoraggio_status=threading.Thread(target=self.monitoraggio_carico_server)
         monitoraggio_status.daemon=True
         monitoraggio_status.start()
@@ -116,7 +116,7 @@ class Server(object):
         for i in range(len(contenuto)):
             if contenuto[i] == 'a' or contenuto[i]== 'A':
                 count_a += 1
-            time.sleep(0.2)
+            time.sleep(0.5)
             
     
     def salvo_file_ricevuto(self, titolo, contenuto):

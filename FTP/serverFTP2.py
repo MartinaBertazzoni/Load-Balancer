@@ -117,7 +117,7 @@ class Server(object):
         for i in range(len(contenuto)):
             if contenuto[i] == 'a' or contenuto[i] == 'A':
                 count_a += 1
-            time.sleep(0.1)
+            time.sleep(0.3)
     
     def salvo_file_ricevuto(self, titolo, contenuto):
 
@@ -174,12 +174,12 @@ class Server(object):
         while True:
             process = psutil.Process(os.getpid())  # Get the current process (your script)
             memory_info = process.memory_info()
-
+            
             # Memoria virtuale totale utilizzata dal processo (in byte)
             self.virtual_memory_used = memory_info.vms
             # Percentage of total system memory used by the process
             memory_percent = (memory_info.vms / psutil.virtual_memory().total) * 100
-        
+            print(memory_percent)
             # se il carico della cpu è maggiore del limite, il server è sovraccarico
             if memory_percent > self.LIMITE_CPU_percentuale:
                 self.SOVRACCARICO = True

@@ -3,6 +3,7 @@ import socket
 import logging
 import threading
 import json
+import time 
 
 class LoadBalancer(object):
     def __init__(self):
@@ -16,7 +17,7 @@ class LoadBalancer(object):
         self.servers = ["127.0.0.1", "127.0.0.1", "127.0.0.1"]
         self.port_server = [5001, 5002, 5003]
         self.current_server_index = 0
-        self.current_server_port_index = 0
+    
         self.server_flags_connection = [False] * len(self.servers)
         self.server_sovracarichi=[False] * len(self.servers)
         self.numero_della_richiesta=0
@@ -122,10 +123,11 @@ class LoadBalancer(object):
             # connetto il load balancer al server scelto
             server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             server_socket.connect((server_address, server_port))
+            #il numero delle richieste ricevute totale
             self.numero_della_richiesta+=1
             file['numero_richiesta']=self.numero_della_richiesta
             
-            print(f"Ho inviato il file al server{server_port} status:{self.server_sovracarichi[self.current_server_port_index]} ", titolo)
+            print(f"Ho inviato il file al server{server_port} status:{self.server_sovracarichi[self.port_server.index(server_port)]} ", titolo)
             file_da_inviare=json.dumps(file)
             server_socket.send(file_da_inviare.encode("utf-8"))
             server_socket.close()
@@ -144,6 +146,7 @@ class LoadBalancer(object):
         """
 
         while True:
+            
             for i, server_address in enumerate(self.servers):
                 # creo una connessione con il server per verificare il suo stato di connessione
                 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -182,20 +185,17 @@ class LoadBalancer(object):
         while True:
             # Scegli il prossimo server nell'ordine circolare
             server_address = self.servers[self.current_server_index]
-            server_port = self.port_server[self.current_server_port_index]
+            server_port = self.port_server[self.current_server_index]
         
             # Verifica se il server selezionato è attivo (flag True)
-            if self.server_flags_connection[self.current_server_index]:
-                break  # Esci dal ciclo se il server è attivo
-            if self.server_sovracarichi[self.current_server_index]==True:
+            if self.server_flags_connection[self.current_server_index] and  self.server_sovracarichi[self.current_server_index]==False:
                 break
             # Se il server non è attivo, passa al successivo nell'ordine
             self.current_server_index = (self.current_server_index + 1) % len(self.servers)
-            self.current_server_port_index = (self.current_server_port_index + 1) % len(self.port_server)
 
         # Passa al successivo nell'ordine per la prossima richiesta
         self.current_server_index = (self.current_server_index + 1) % len(self.servers)
-        self.current_server_port_index = (self.current_server_port_index + 1) % len(self.port_server)
+    
 
         return server_address, server_port  # Restituisci l'indirizzo del server attivo
 

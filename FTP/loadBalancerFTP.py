@@ -23,7 +23,7 @@ class LoadBalancer(object):
         self.server_flags_connection = [False] * len(self.servers)
         self.server_sovracarichi=[False] * len(self.servers)
         self.numero_della_richiesta=0
-        self.monitoraggio_stato_server = threading.Thread(target=self.monitoraggio_server)
+        self.monitoraggio_stato_server = threading.Thread(target=self.monitoraggio_stato_server)
         self.monitoraggio_stato_server.daemon = True
         self.monitoraggio_stato_server.start()
 
@@ -62,19 +62,14 @@ class LoadBalancer(object):
         """
         try:
             while True:
-                # Accetta le connessioni in entrata
-                client_socket, client_ip = self.balancer_socket.accept()
-                # Aggiunge il client alla lista dei client connessi
+                client_socket, client_ip = self.balancer_socket.accept() # Accetta le connessioni in entrata
                 self.clients.append(self.balancer_socket)
-                # Commento di riuscita connessione con il client
                 print("Connessione accettata da {}:{}".format(client_ip[0], client_ip[1]))
-
+                # il load balancer riceve i file dal client
                 ricezione_file = threading.Thread(target=self.ricevo_file_dal_client, args=(client_socket,))
                 ricezione_file.start()
-                # Continua ad accettare ulteriori richieste dal client
-                # senza aspettare che questa venga elaborata
+                # il load balancer invia i file contenuti nella coda ai server
                 threading.Thread(target=self.process_request_queue).start()
-
         except Exception as e:
             print("Errore durante la comunicazione con il client:", e)
 
@@ -90,28 +85,28 @@ class LoadBalancer(object):
         """
         try:
             while True:
-                # ricevo il file
                 file_ricevuto = client_socket.recv(4096).decode("utf-8")
                 if not file_ricevuto:
                     break
-                #lo converto in un dizionario
-                file=json.loads(file_ricevuto)
+                file=json.loads(file_ricevuto) # converto il file in un dizionario
                 titolo = file.get("titolo", "")
                 self.nomi_file_ricevuti.append(titolo)
                 print("Ho ricevuto il file",titolo)
-
-                # Inserisci la richiesta direttamente nella coda delle richieste
-                self.request_queue.put((client_socket, file, titolo))
-
+                self.request_queue.put((client_socket, file, titolo)) # inserisco la richiesta nella coda
         except Exception as e:
             print("Errore durante la comunicazione con il client:", e)
 
     def process_request_queue(self):
+        """
+        Metodo che estrae il primo elemento dalla coda delle richieste e lo invia al server
+        :return: None
+        """
         while True:
-            client_socket, file, titolo = self.request_queue.get()
+            client_socket, file, titolo = self.request_queue.get()  # estraggo il primo elemento dalla coda
             time.sleep(0.2)
-            # Invia il file al server
             self.invia_ai_server(client_socket, file, titolo)
+
+
 
     def invia_ai_server(self, client_socket, file , titolo):
         """
@@ -124,30 +119,33 @@ class LoadBalancer(object):
         """
         try:
             server_address, server_port = self.round_robin()
-            print("server scelto", server_port)
+            print("Server scelto: ", server_port)
             # funzione che mette il log di richiesta del Client inoltrata allo specifico Server nel file loadbalancer.log
             logging.info(
                 f'Inoltro richiesta del Client {client_socket.getpeername()} al server {server_address}:{server_port}')
-
-            # connetto il load balancer al server scelto
-            server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            server_socket.connect((server_address, server_port))
-            #il numero delle richieste ricevute totale
-            self.numero_della_richiesta+=1
-            print(self.numero_della_richiesta)
-            file['numero_richiesta']=self.numero_della_richiesta
-            
-            print(f"Ho inviato il file al server{server_port} status:{self.server_sovracarichi[self.port_server.index(server_port)]} ", titolo)
-            file_da_inviare = json.dumps(file)
-            server_socket.send(file_da_inviare.encode("utf-8"))
-            server_socket.close()
+            # invio il file al server scelto dal round robin
+            self.invia_al_server_scelto(server_address, server_port, file, titolo)
             # ricevo risposta dal server (da controllare per farla funzionare)
             #self.ricevi_risposta_server(server_socket, client_socket)
         except socket.error as error:
             print(f"Errore di comunicazione con il server: {error}")
             sys.exit(1)
 
-    def monitoraggio_server(self):
+    def invia_al_server_scelto(self, server_address, server_port, file, titolo):
+        # connetto il load balancer al server scelto
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        server_socket.connect((server_address, server_port))
+        self.numero_della_richiesta += 1
+        print("Numero della richiesta elaborata: ", self.numero_della_richiesta)
+        file['numero_richiesta'] = self.numero_della_richiesta
+        print(
+            f"Ho inviato il file al server{server_port} status:{self.server_sovracarichi[self.port_server.index(server_port)]} ",
+            titolo)
+        file_da_inviare = json.dumps(file)
+        server_socket.send(file_da_inviare.encode("utf-8"))
+        server_socket.close()
+
+    def monitoraggio_stato_server(self):
         """
         Metodo che monitora lo stato di connessione dei server provandoli a mettere in connessione con il load balancer.
         In caso di esito positivo, la flag del server diventa True, altrimenti è False.
@@ -163,23 +161,35 @@ class LoadBalancer(object):
                 server_socket.settimeout(1)  # Timeout per la connessione
                 try:
                     server_socket.connect((server_address, self.port_server[i]))
-                    #creo il messaggio di richiesta di monitoraggio
-                    messaggio_di_monitoraggio={'request_type':'richiesta_status'}
-                    #lo trasformo in una stringa
-                    richiesta_status=json.dumps(messaggio_di_monitoraggio)
-                    #lo mando
-                    server_socket.send(richiesta_status.encode())
-                    #ricevo la risposta boolena se è in sovracarico(TRUE) o se non è in sovracrico(false)
-                    status= server_socket.recv(1)
-                    #lo converto da byte a valore booleano
-                    status= bool(int.from_bytes(status, byteorder='big'))
-                    self.server_sovracarichi[i]=status
-                    server_socket.close()
+                    # monitoro il carico del server
+                    self.monitoraggio_carico_server(i, server_socket)
                     # Se la connessione riesce, il server è attivo, quindi aggiorno la flag in True
                     self.server_flags_connection[i] = True
                 except (socket.timeout, ConnectionRefusedError):
                     # Se la connessione fallisce, il server è inattivo, quindi aggiorno la flag in False
                     self.server_flags_connection[i] = False
+
+    def monitoraggio_carico_server(self, i, server_socket):
+        """
+        Metodo che monitora il carico del server; in particolare, riceve dal server una flag, dove True ne indica
+        lo stato di sovraccarico, mentre False il contrario
+
+        :param i: indice del server scelto
+        :param server_socket: socket del server
+        :return: None
+
+        """
+        # creo il messaggio di richiesta di monitoraggio
+        messaggio_di_monitoraggio = {'request_type': 'richiesta_status'}
+        # lo trasformo in una stringa e lo invio
+        richiesta_status = json.dumps(messaggio_di_monitoraggio)
+        server_socket.send(richiesta_status.encode())
+        # ricevo la risposta boolena:  se è in sovracarico(True) o se non è in sovracrico(False)
+        status = server_socket.recv(1)
+        # lo converto da byte a valore booleano
+        status = bool(int.from_bytes(status, byteorder='big'))
+        self.server_sovracarichi[i] = status
+        server_socket.close()
 
 
     def round_robin(self):
@@ -225,13 +235,6 @@ class LoadBalancer(object):
         except socket.error as error:
             print(f"Impossibile ricevere dati dal server: {error}")
             sys.exit(1)
-
-
-    def monitoraggio_carico_server(self):
-        pass
-
-    def monitoraggio_client_connessi(self):
-        pass
 
 
 if __name__ == "__main__":

@@ -13,7 +13,7 @@ class Server(object):
         self.server_socket = None
         self.active_requests=[]
         self.SOVRACCARICO=False
-        self.LIMITE_CPU_percentuale=0.06#la percentuale di utilizzo prima delle richieste è 0.054
+        self.LIMITE_CPU_percentuale=0.14#la percentuale di utilizzo prima delle richieste è 0.054
         monitoraggio_status=threading.Thread(target=self.monitoraggio_carico_server)
         monitoraggio_status.daemon=True
         monitoraggio_status.start()

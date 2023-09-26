@@ -7,7 +7,6 @@ import time
 import json
 
 class Client(object):
-
     def __init__(self):
         self.loadBalancer_ip = "127.0.0.1"
         self.loadBalancer_port = "60004"
@@ -26,13 +25,13 @@ class Client(object):
         self.avvio_client_socket()
         interfaccia = threading.Thread(target=self.interfaccia_utente)
         invio_file_al_loadbalancer = threading.Thread(target=self.invia_file_al_loadbalancer)
-        ricevi_risposta = threading.Thread(target=self.ricevi_dati_dal_loadbalancer)
+        #ricevi_risposta = threading.Thread(target=self.ricevi_dati_dal_loadbalancer)
         interfaccia.start()
         invio_file_al_loadbalancer.start()
-        ricevi_risposta.start()
+        #ricevi_risposta.start()
         interfaccia.join()
         invio_file_al_loadbalancer.join()
-        ricevi_risposta.join()
+        #ricevi_risposta.join()
 
 
     def avvio_client_socket(self):

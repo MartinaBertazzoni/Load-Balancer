@@ -13,7 +13,7 @@ class Server(object):
         self.server_socket = None
         self.active_requests=[]
         self.SOVRACCARICO=False
-        self.LIMITE_CPU_percentuale=0.06#la percentuale di utilizzo iniziale è circa 0.054
+        self.LIMITE_CPU_percentuale=0.14#la percentuale di utilizzo iniziale è circa 0.054
         monitoraggio_status=threading.Thread(target=self.monitoraggio_carico_server)
         monitoraggio_status.daemon=True
         monitoraggio_status.start()
@@ -72,7 +72,6 @@ class Server(object):
                     ricezione_dati.join()
                     print('richiesta conclusa')
 
-
         except Exception as e:
             print("Errore durante la connessione con il loadbalancer:", e)
 
@@ -83,7 +82,6 @@ class Server(object):
                 file= richiesta_socket.recv(4096).decode("utf-8")
                 if not file:
                     break
-
                 # Decodifica il file JSON e lo mette in forma di dizionario
                 json_data = json.loads(file)
                 #capisco il tipo di rischiesta 

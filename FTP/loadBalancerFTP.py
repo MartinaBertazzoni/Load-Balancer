@@ -3,7 +3,8 @@ import socket
 import logging
 import threading
 import json
-import time 
+from queue import Queue
+import time
 
 class LoadBalancer(object):
     def __init__(self):
@@ -17,6 +18,7 @@ class LoadBalancer(object):
         self.servers = ["127.0.0.1", "127.0.0.1", "127.0.0.1"]
         self.port_server = [5001, 5002, 5003]
         self.current_server_index = 0
+        self.request_queue = Queue()  # Coda delle richieste in arrivo
     
         self.server_flags_connection = [False] * len(self.servers)
         self.server_sovracarichi=[False] * len(self.servers)
@@ -69,7 +71,9 @@ class LoadBalancer(object):
 
                 ricezione_file = threading.Thread(target=self.ricevo_file_dal_client, args=(client_socket,))
                 ricezione_file.start()
-                ricezione_file.join()
+                # Continua ad accettare ulteriori richieste dal client
+                # senza aspettare che questa venga elaborata
+                threading.Thread(target=self.process_request_queue).start()
 
         except Exception as e:
             print("Errore durante la comunicazione con il client:", e)
@@ -94,17 +98,22 @@ class LoadBalancer(object):
                 file=json.loads(file_ricevuto)
                 titolo = file.get("titolo", "")
                 self.nomi_file_ricevuti.append(titolo)
-
                 print("Ho ricevuto il file",titolo)
 
-                self.invia_ai_server(client_socket,file,titolo)
+                # Inserisci la richiesta direttamente nella coda delle richieste
+                self.request_queue.put((client_socket, file, titolo))
 
         except Exception as e:
             print("Errore durante la comunicazione con il client:", e)
 
+    def process_request_queue(self):
+        while True:
+            client_socket, file, titolo = self.request_queue.get()
+            time.sleep(0.2)
+            # Invia il file al server
+            self.invia_ai_server(client_socket, file, titolo)
 
-
-    def invia_ai_server(self, client_socket,file,titolo):
+    def invia_ai_server(self, client_socket, file , titolo):
         """
         Metodo che invia il file JSON al server scelto; dopo aver ottenuto l'ip e la porta del server considerato
         tramite il metodo Round Robin, il load balancer viene connesso al server in questione e gli invia
@@ -125,10 +134,11 @@ class LoadBalancer(object):
             server_socket.connect((server_address, server_port))
             #il numero delle richieste ricevute totale
             self.numero_della_richiesta+=1
+            print(self.numero_della_richiesta)
             file['numero_richiesta']=self.numero_della_richiesta
             
             print(f"Ho inviato il file al server{server_port} status:{self.server_sovracarichi[self.port_server.index(server_port)]} ", titolo)
-            file_da_inviare=json.dumps(file)
+            file_da_inviare = json.dumps(file)
             server_socket.send(file_da_inviare.encode("utf-8"))
             server_socket.close()
             # ricevo risposta dal server (da controllare per farla funzionare)
@@ -188,14 +198,13 @@ class LoadBalancer(object):
             server_port = self.port_server[self.current_server_index]
         
             # Verifica se il server selezionato è attivo (flag True)
-            if self.server_flags_connection[self.current_server_index] and  self.server_sovracarichi[self.current_server_index]==False:
+            if self.server_flags_connection[self.current_server_index] and self.server_sovracarichi[self.current_server_index]==False:
                 break
             # Se il server non è attivo, passa al successivo nell'ordine
             self.current_server_index = (self.current_server_index + 1) % len(self.servers)
 
         # Passa al successivo nell'ordine per la prossima richiesta
         self.current_server_index = (self.current_server_index + 1) % len(self.servers)
-    
 
         return server_address, server_port  # Restituisci l'indirizzo del server attivo
 

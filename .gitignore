@@ -6,6 +6,9 @@ _pycache_
 .idea
 venv/*
 loadbalancer.log
+json_files_1
+json_files_2
+json_files_3
 
 
 risultati.txt

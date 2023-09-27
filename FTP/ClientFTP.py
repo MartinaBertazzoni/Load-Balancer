@@ -36,7 +36,7 @@ class Client(object):
 
     def avvio_client_socket(self):
         """
-        Metodo che avvia la socket del client, e la connette al load balancer
+        Metodo che avvia la socket del client e la connette al load balancer
 
         :return: None
         """
@@ -122,7 +122,8 @@ class Client(object):
     def invia_file_scelto(self, filepath):
         """
         Metodo che svolge operazioni sul file scelto e lo invia al load balancer
-        :param filepath:
+
+        :param filepath: filepath del file da inviare
         :return: None
 
         """
@@ -138,7 +139,7 @@ class Client(object):
 
     def ricevi_dati_dal_loadbalancer(self):
         """
-        Metodo che riceve mette la socket in ascolto per ricevere i messaggi dal load balancer
+        Metodo che mette la socket in ascolto per ricevere i messaggi dal load balancer
 
         :return: None
         """
@@ -150,7 +151,6 @@ class Client(object):
         except socket.error as error:
             print(f"Impossibile ricevere dati dal loadbalancer: {error}")
             sys.exit(1)
-
 
 
 

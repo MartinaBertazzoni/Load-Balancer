@@ -56,7 +56,8 @@ class LoadBalancer(object):
 
     def connetto_il_client(self):
         """
-        Metodo che connette il load balancer con il client, e crea un thread per ricevere i file dal client
+        Metodo che connette il load balancer con il client, crea un thread per ricevere i file dal client
+        e un thread per gestire la coda delle richieste in arrivo dal client
 
         :return: None
         """
@@ -65,7 +66,7 @@ class LoadBalancer(object):
                 client_socket, client_ip = self.balancer_socket.accept() # Accetta le connessioni in entrata
                 self.clients.append(self.balancer_socket)
                 print("Connessione accettata da {}:{}".format(client_ip[0], client_ip[1]))
-                # il load balancer riceve i file dal client
+                # attivo ricezione file dal client
                 ricezione_file = threading.Thread(target=self.ricevo_file_dal_client, args=(client_socket,))
                 ricezione_file.start()
                 # il load balancer invia i file contenuti nella coda ai server
@@ -77,8 +78,8 @@ class LoadBalancer(object):
 
     def ricevo_file_dal_client(self, client_socket):
         """
-        Metodo che riceve il file JSON dal client, lo divide in "titolo" e "contenuto" del file, e crea
-        un thread per inviare il file ai server
+        Metodo che riceve il file JSON dal client e inserisce il contenuto del file all'interno della
+        coda delle richieste
 
         :param client_socket: socket del client
         :return: None
@@ -99,6 +100,7 @@ class LoadBalancer(object):
     def process_request_queue(self):
         """
         Metodo che estrae il primo elemento dalla coda delle richieste e lo invia al server
+
         :return: None
         """
         while True:
@@ -110,9 +112,7 @@ class LoadBalancer(object):
 
     def invia_ai_server(self, client_socket, file , titolo):
         """
-        Metodo che invia il file JSON al server scelto; dopo aver ottenuto l'ip e la porta del server considerato
-        tramite il metodo Round Robin, il load balancer viene connesso al server in questione e gli invia
-        il contenuto del file. In seguito, viene avviato un thread per gestire la risposta.
+        Metodo che invia il file JSON al server scelto dall'algoritmo Round Robin
 
         :param client_socket:
         :return:
@@ -123,8 +123,7 @@ class LoadBalancer(object):
             # funzione che mette il log di richiesta del Client inoltrata allo specifico Server nel file loadbalancer.log
             logging.info(
                 f'Inoltro richiesta del Client {client_socket.getpeername()} al server {server_address}:{server_port}')
-            # invio il file al server scelto dal round robin
-            self.invia_al_server_scelto(server_address, server_port, file, titolo)
+            self.invia_al_server_scelto(server_address, server_port, file, titolo)  # invio il file al server scelto dal round robin
             # ricevo risposta dal server (da controllare per farla funzionare)
             #self.ricevi_risposta_server(server_socket, client_socket)
         except socket.error as error:
@@ -132,8 +131,17 @@ class LoadBalancer(object):
             sys.exit(1)
 
     def invia_al_server_scelto(self, server_address, server_port, file, titolo):
-        # connetto il load balancer al server scelto
-        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        """
+        Metodo che connette il load balancer con il server scelto e gli invia il contenuto del file
+
+        :param server_address: ip del server scelto
+        :param server_port: porta del server scelto
+        :param file: file da inviare
+        :param titolo: titolo del file da inviare
+        :return: None
+
+        """
+        server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # connetto il load balancer al server scelto
         server_socket.connect((server_address, server_port))
         self.numero_della_richiesta += 1
         print("Numero della richiesta elaborata: ", self.numero_della_richiesta)
@@ -148,7 +156,8 @@ class LoadBalancer(object):
     def monitoraggio_stato_server(self):
         """
         Metodo che monitora lo stato di connessione dei server provandoli a mettere in connessione con il load balancer.
-        In caso di esito positivo, la flag del server diventa True, altrimenti è False.
+        In caso di esito positivo, la flag del server diventa True, altrimenti è False. Inoltre, svolge un controllo
+        sullo stato del carico dei server.
 
         :return: None
         """
@@ -161,8 +170,7 @@ class LoadBalancer(object):
                 server_socket.settimeout(1)  # Timeout per la connessione
                 try:
                     server_socket.connect((server_address, self.port_server[i]))
-                    # monitoro il carico del server
-                    self.monitoraggio_carico_server(i, server_socket)
+                    self.monitoraggio_carico_server(i, server_socket)  # monitoro il carico del server
                     # Se la connessione riesce, il server è attivo, quindi aggiorno la flag in True
                     self.server_flags_connection[i] = True
                 except (socket.timeout, ConnectionRefusedError):
@@ -171,8 +179,9 @@ class LoadBalancer(object):
 
     def monitoraggio_carico_server(self, i, server_socket):
         """
-        Metodo che monitora il carico del server; in particolare, riceve dal server una flag, dove True ne indica
-        lo stato di sovraccarico, mentre False il contrario
+        Metodo che monitora il carico del server; in particolare, in seguito a una richiesta
+        del load balancer, riceve dal server una flag, dove True ne indica
+        lo stato di sovraccarico, mentre False il contrario, e quindi il permesso di inviargli file
 
         :param i: indice del server scelto
         :param server_socket: socket del server
@@ -184,7 +193,7 @@ class LoadBalancer(object):
         # lo trasformo in una stringa e lo invio
         richiesta_status = json.dumps(messaggio_di_monitoraggio)
         server_socket.send(richiesta_status.encode())
-        # ricevo la risposta boolena:  se è in sovracarico(True) o se non è in sovracrico(False)
+        # ricevo la risposta boolena: sovraccarico = True, non in sovraccarico = False
         status = server_socket.recv(1)
         # lo converto da byte a valore booleano
         status = bool(int.from_bytes(status, byteorder='big'))
@@ -194,7 +203,7 @@ class LoadBalancer(object):
 
     def round_robin(self):
         """
-        Metodo che implementa l'algoritmo di bilanciamento del carico Round Robin, che inoltra una richiesta
+        Metodo che implementa l'algoritmo di bilanciamento del carico Round Robin, il quale inoltra una richiesta
         ad ogni server in maniera sequenziale.
 
         :return:
@@ -207,7 +216,7 @@ class LoadBalancer(object):
             server_address = self.servers[self.current_server_index]
             server_port = self.port_server[self.current_server_index]
         
-            # Verifica se il server selezionato è attivo (flag True)
+            # Verifica che il server selezionato è attivo (flag True) e non sovraccarico (flag False); in caso contrario, cambia server
             if self.server_flags_connection[self.current_server_index] and self.server_sovracarichi[self.current_server_index]==False:
                 break
             # Se il server non è attivo, passa al successivo nell'ordine

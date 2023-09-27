@@ -200,3 +200,9 @@ Per garantire un funzionamento efficiente del sistema in scenari con un numero c
 7. **Thread di Monitoraggio:** E' possibile creare un thread di monitoraggio che supervisioni lo stato del sistema. Questo thread può raccogliere metriche, gestire errori e garantire che il sistema funzioni in modo affidabile.
 
 Configurando correttamente questi sei thread, il sistema sarà in grado di gestire simultaneamente numerose richieste dai client in modo efficiente e scalabile, garantendo prestazioni ottimali anche in situazioni di carico elevato. 
+
+### Sistema di tracciamento delle richieste: Memorizzazione delle Richieste e Accesso da Parte del Server
+
+In un sistema distribuito in cui il LoadBalancer svolge un ruolo critico nell'indirizzare le richieste dei client ai server appropriati, è importante disporre di meccanismi adeguati per tenere traccia delle richieste effettuate e dei loro dettagli. Questo consente una gestione più efficace delle operazioni, nonché una risoluzione più efficiente dei problemi o degli errori che potrebbero verificarsi.
+
+Per implementare questa funzionalità, devono essere effettuate le seguenti modifiche al codice:

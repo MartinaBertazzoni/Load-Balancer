@@ -22,9 +22,23 @@ Il file `clientFTP.py` contiene la classe `client` con tutti i metodi per consen
 * **Inizializzazione del Client:**
 Il client viene inizializzato con l'indirizzo IP e la porta del load balancer sui quali il client si connetterà, un percorso del file da inviare, una lista utilizzata per memorizzare i file che il client desidera inviare al server e un attributo utilizzato per tenere traccia del numero di richieste effettuate dal client.
 * **Avvio del client:**
-La funzione `avvio_client`, è utilizzata per avviare il socket del client, che sarà utilizzato per stabilire una connessione con il load balancer, e i seguenti thread associati alle diverse operazioni:
-1. `interfaccia_utente`:
-2. 
+La funzione **`avvio_client`**, è utilizzata per avviare il socket del client, che sarà utilizzato per stabilire una connessione con il load balancer, e i seguenti thread associati alle diverse operazioni:
+  1. **Interfaccia:** La funzione **`interfaccia_utente`** consente l'interazione dell'utente con il cliant. Nello specifico, vengono elencati i file che possono essere selezionati per il trasferimento ai server nella cartella "file".
+Se la cartella non contiene file, il codice genera un'eccezione con il messaggio di errore *"La cartella non ha file al suo interno."* e interrompe il programma.
+Se la cartella contiene file, l'utente viene invitato a inserire un comando tramite *input(" Digita il comando: ")*:
+ Se l'utente inserisce il comando "exit", il client mostra il messaggio di chiusura della connessione *`"Chiusura della connessione con il server..."* e termina il programma.
+Se l'utente inserisce il comando "FTP", tramite il messaggio *"Inserisci il numero di file da trasferire: "*, viene richiesto di inserire il numero di file da trasferire.
+- **Selezionati i file da inviare** 
+
+La funzione self.scegli_file_da_inviare(numero_file) viene chiamata per gestire la selezione dei file da inviare in base al numero inserito dall'utente.
+
+Se viene generata un'eccezione durante l'input del numero di file, viene catturata e visualizzata un messaggio di errore, consentendo all'utente di riprovare.
+
+Se l'utente inserisce un comando diverso da "exit" o "FTP," viene visualizzato un messaggio di errore e l'utente viene invitato a riprovare.
+  2. 
+  3. **Invio dei comandi al load balancer:** la funzione **`invia_file_al_loadbalancer`**
+ 
+  4. 
 ##### Connessione al load balancer:
 Con la funzione `connessione_al_loadbalancer` si ha la connessione del client al load balancer tramite una socket TCP. Nello specifico, viene impostato l'indirizzo IP del load balancer (`loadBalancer_ip`) e la porta su cui il load balancer è in ascolto (`loadBalancer_port`) per creare una nuova istanza di socket TCP/IP per il client (`socket.socket(socket.AF_INET, socket.SOCK_STREAM)`) e il client utilizza il metodo `connect` per stabilire una connessione con il load balancer specificando l'indirizzo IP e la porta del load balancer come argomenti.
 Se la connessione ha successo, viene stampato un messaggio di conferma e la funzione restituisce la socket del client connesso al load balancer.
@@ -34,10 +48,10 @@ La socket del client connesso verrà utilizzata per inviare i comandi al load ba
 
 Dopo aver stabilito la connessione con il load balancer, la funzione `avvio client` avvia e chiude tre thread:                                                
 ##### 1) Interfaccia: prende in imput  i comandi che devono essere eseguiti.
-Con il metodo  `interfaccia_client` viene avviata un'interfaccia utente che permette agli utenti di inserire comandi manualmente. Digitando "random", vengono generati comandi casuali (richiamando la funzione `crea_comando_random()`) e, in tal caso, occorre comunicare il numero di richieste randomiche che devono essere create. Digitando "exit" sull'interfaccia, si ha la chiusura della connessione con il server.
+ Digitando "exit" sull'interfaccia, si ha la chiusura della connessione con il server.
 Questi comandi vengono aggiunti alla lista di comandi da eseguire `self.comandi`.
 
-In questa parte di codice è stata impiegata la funzione `time.sleep()` per mettere in pausa l'esecuzione del programma per un certo periodo di tempo. Infatti, in tal modo, è stato possibile sincronizzare l'esecuzione dell'operazione affinchè fosse in linea con altre parti del programma.
+In questa parte di codice è stata impiegata la funzione `time.sleep(1)` per mettere in pausa l'esecuzione del programma per un certo periodo di tempo. Infatti, in tal modo, è stato possibile sincronizzare l'esecuzione dell'operazione affinchè fosse in linea con altre parti del programma.
 
 ##### 2) Invio dei comandi al load balancer.
  La funzione `invia_richieste_al_loadbalancer` controlla se la lista `self.comandi` contiene comandi da inviare: Se la lista è vuota, continua a scorrere il thread senza inviare nulla.

@@ -6,17 +6,19 @@ Questo repository contiene un'implementazione in Python di un sistema client-ser
 Questo programma implementa un sistema client-server intermediato da un server di load balacing utilizzano Python. Per fare ciò utilizza tre classi: client, loadBalancer e server. Il client effettua delle richieste al load balancer, il quale le invia ai server sfruttando l'algoritmo di bilanciamento del carico Round Robin. Questo algoritmo assegna le richieste in maniera sequenziale ai server ad esso collegati e che risultano attivi nella sessione. Infine, il load balancer riceve le risposte dai server e le reindirizza al client.
 
 ## Descrizione dell'architettura
-L'architettura prevede l'utilizzo di un client, un load balancer e tre server. Il `client` richiede in input un comando; se viene digitato il comando di creazione di richieste randomiche, e viene successivamente inserito il numero di richieste da effettuare, queste vengono scelte randomicamente all'interno di un set di operazioni pre-fissate e inviate al load balancer. Il `loadbalancer` invia le richieste ai server che risultano essere attivi; per verificare l'attività o l'inattività dei server effettua precedentemente un controllo di connessione con i server ad esso collegati. Le richieste vengono assegnate utilizzando l'algoritmo di bilanciamento del carico Round Robin: il load balancer invia richieste ai server in maniera sequenziale. In seguito, i `server` effettuano il calcolo richiesto e inviano la risposta al load balancer, che la inoltra al client. 
+L'architettura prevede l'utilizzo di un client, un load balancer e tre server FTP (File Transfer Protocol). Il `client` richiede in input un comando da eseguire; se viene digitato il comando "FTP", e viene successivamente inserito il numero di file, questi vengono scelti randomicamente tra i file contenuti nella cartella `file` e inviate al load balancer. Il `loadbalancer` invia le richieste ai server che risultano essere disponibili alla recezione; per verificare la disponibilità dei server effettua precedentemente un monitoraggio di connessione e di carico con i server ad esso collegati. Le richieste vengono assegnate utilizzando l'algoritmo di bilanciamento del carico Round Robin: il load balancer invia richieste ai server in maniera sequenziale. Quindi, i `server` attivi che non sono in sovraccarico, ricevono i file dal loadbalancer, li salvano all'interno della cartella `json_files_1`, inviano la risposta di avvenuta ricezione dei file al loadbalancer, che la inoltra al client. 
 
 Il sistema permette quindi una gestione dinamica dei server: il load balancer tiene traccia dei server attivi e inattivi in ogni sessione, per inviare le richieste solo a quelli connessi. Con la stessa logica, il sistema appare altamente tollerante ai guasti, in quanto la disconnessione improvvisa di un server non causa interruzioni nell'invio delle richieste a quelli funzionanti.  
 
-Il load balancer tiene inoltre traccia delle attività di ogni sessione; in particolare, registra sul file `loadbalancer.log` le connessioni e le richieste effettuate. 
+Inoltre, il sistema, attraverso un thread separato, monitora continuamente il carico della cpu del server e, se la memoria virtuale utilizzata dal processo supera il limite imposto, viene inviato un byte che rappresenta lo stato di sovraccarico al client. 
+
+Per simulare una situazione di sovraccarico per i server, se il tipo di richiesta è "file_di_testo", il server estrae il titolo e il contenuto dal file JSON e conta il numero di lettere "A" nel contenuto.
 
 ## Funzionamento
-Abbiamo 6 file: `client.py`, `loadBalancer.py`, `server1.py`, `server2.py`, `server3.py` e `loadbalancer.log`. 
+Abbiamo 5 file: `clientFTP.py`, `loadBalancerFTP.py`, `serverFTP1.py`, `serverFTP2.py' e `serverFTP3.py`. 
 
 ### Client:
-Il file `client.py` contiene la classe `client` con tutti i metodi per consentire la comunicazione delle richieste e delle rispettive risposte con il load balancer.
+Il file `clientFTP.py` contiene la classe `client` con tutti i metodi per consentire la comunicazione delle richieste e delle rispettive risposte con il load balancer. Il suo scopo principale è consentire agli utenti di interagire con un server FTP per eseguire operazioni di upload e download di file tra il client e il server remoto. 
 
 #### Avvio del client:
 La funzione `avvio_client`, per prima cosa, stabilisce la connessione tra il client e il load balancer:

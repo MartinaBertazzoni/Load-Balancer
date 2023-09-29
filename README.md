@@ -23,7 +23,7 @@ Il file `clientFTP.py` contiene la classe `client` con tutti i metodi per consen
 Il client viene inizializzato con l'indirizzo IP e la porta del load balancer sui quali il client si connetterà, un percorso del file da inviare, una lista utilizzata per memorizzare i file che il client desidera inviare al server e un attributo utilizzato per tenere traccia del numero di richieste effettuate dal client.
 * **Avvio del client:**
 La funzione **`avvio_client`**, è utilizzata per avviare il socket del client, che sarà utilizzato per stabilire una connessione con il load balancer, e i seguenti thread associati alle diverse operazioni:
-  1. **Interfaccia:** La funzione **`interfaccia_utente`** consente l'interazione dell'utente con il cliant. Nello specifico, vengono elencati i file che possono essere selezionati per il trasferimento ai server nella cartella "file".
+  1. **Interfaccia:** La funzione **`interfaccia_utente`** consente l'interazione dell'utente con il cliant. In questa parte di codice è stata impiegata la funzione `time.sleep(1)` per aggiungere un ritardo tra le iterazioni del ciclo, evitando un loop troppo veloce. Il metodo entra in un ciclo infinito che permette all'utente di inserire comandi in modo continuo fino a quando non viene inserito il comando "exit" per chiudere la connessione. Nello specifico, vengono elencati i file che possono essere selezionati per il trasferimento ai server nella cartella "file".
 Se la cartella non contiene file, il codice genera un'eccezione con il messaggio di errore *"La cartella non ha file al suo interno."* e interrompe il programma.
 Se la cartella contiene file, l'utente viene invitato a inserire un comando tramite *input(" Digita il comando: ")*:
  Se l'utente inserisce il comando "exit", il client mostra il messaggio di chiusura della connessione *"Chiusura della connessione con il server..."* e termina il programma.
@@ -32,9 +32,14 @@ Se l'utente inserisce il comando "FTP", tramite il messaggio *"Inserisci il nume
      - **Selezione dei file da inviare:** Il metodo **`scegli_file_da_inviare`** ha lo scopo di selezionare e creare una lista di file da inviare ai server FTP.
 Infatti, viene eseguito un loop for che itera per il numero di volte specificato da `numero_file` e, durante ogni iterazione, la funzione chiama il metodo **`scegli_file_random`** per selezionare casualmente un file dalla lista dei file disponibili nella cartella. In seguito, viene composto il percorso completo del file selezionato concatenando `"./file/"` con il nome del file. Questo percorso viene memorizzato nella variabile `filepath` che viene aggiunta alla lista `file_da_inviare` contenente i file da inviare ai server.
 
-  2. **Invio dei comandi al load balancer:** la funzione **`invia_file_al_loadbalancer`**
- 
-  4. 
+  2. **Invio dei comandi al load balancer:** la funzione **`invia_file_al_loadbalancer`** è responsabile dell'invio di file JSON al load balancer. 
+Il metodo utilizza un ciclo while infinito per continuare a inviare file al load balancer finché ci sono file nella lista `file_da_inviare`.
+All'interno del ciclo, il metodo controlla se la lista non è vuota. Se la lista contiene file da inviare, viene estratto dalla lista il percorso del primo file da inviare, che viene poi rimosso.
+Quindi, il metodo chiama la funzione **`invia_file_scelto`** che, apre il file JSON specificato da filepath, ne legge il contenuto, lo converte in un dizionario e gli aggiunge una chiave "request_type" assegnandogli il valore `file_di_testo` per identificare il tipo di richiesta, converte il dizionario aggiornato in una stringa JSON in modo da poterlo inviare tramite una socket e invia la stringa JSON codificata in byte attraverso la socket del client. 
+Dopo l'invio del file, il metodo attende brevemente con time.sleep(0.3) per evitare problemi di sovrapposizione nell'invio di file successivi.
+Infine, la funzione stampa un messaggio indicando che il file JSON è stato inoltrato con successo al load balancer e incrementa il contatore delle richieste `counter_richieste`.
+Se si verifica un errore di comunicazione durante l'invio, viene catturata un'eccezione di tipo socket.error e viene stampato un messaggio di errore e programma viene quindi terminato.
+
 ##### Connessione al load balancer:
 Con la funzione `connessione_al_loadbalancer` si ha la connessione del client al load balancer tramite una socket TCP. Nello specifico, viene impostato l'indirizzo IP del load balancer (`loadBalancer_ip`) e la porta su cui il load balancer è in ascolto (`loadBalancer_port`) per creare una nuova istanza di socket TCP/IP per il client (`socket.socket(socket.AF_INET, socket.SOCK_STREAM)`) e il client utilizza il metodo `connect` per stabilire una connessione con il load balancer specificando l'indirizzo IP e la porta del load balancer come argomenti.
 Se la connessione ha successo, viene stampato un messaggio di conferma e la funzione restituisce la socket del client connesso al load balancer.
@@ -47,7 +52,6 @@ Dopo aver stabilito la connessione con il load balancer, la funzione `avvio clie
  Digitando "exit" sull'interfaccia, si ha la chiusura della connessione con il server.
 Questi comandi vengono aggiunti alla lista di comandi da eseguire `self.comandi`.
 
-In questa parte di codice è stata impiegata la funzione `time.sleep(1)` per mettere in pausa l'esecuzione del programma per un certo periodo di tempo. Infatti, in tal modo, è stato possibile sincronizzare l'esecuzione dell'operazione affinchè fosse in linea con altre parti del programma.
 
 ##### 2) Invio dei comandi al load balancer.
  La funzione `invia_richieste_al_loadbalancer` controlla se la lista `self.comandi` contiene comandi da inviare: Se la lista è vuota, continua a scorrere il thread senza inviare nulla.

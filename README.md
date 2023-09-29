@@ -40,44 +40,10 @@ Dopo l'invio del file, il metodo attende brevemente con time.sleep(0.3) per evit
 Infine, la funzione stampa un messaggio indicando che il file JSON è stato inoltrato con successo al load balancer e incrementa il contatore delle richieste `counter_richieste`.
 Se si verifica un errore di comunicazione durante l'invio, viene catturata un'eccezione di tipo socket.error e viene stampato un messaggio di errore e programma viene quindi terminato.
 
-##### Connessione al load balancer:
-Con la funzione `connessione_al_loadbalancer` si ha la connessione del client al load balancer tramite una socket TCP. Nello specifico, viene impostato l'indirizzo IP del load balancer (`loadBalancer_ip`) e la porta su cui il load balancer è in ascolto (`loadBalancer_port`) per creare una nuova istanza di socket TCP/IP per il client (`socket.socket(socket.AF_INET, socket.SOCK_STREAM)`) e il client utilizza il metodo `connect` per stabilire una connessione con il load balancer specificando l'indirizzo IP e la porta del load balancer come argomenti.
-Se la connessione ha successo, viene stampato un messaggio di conferma e la funzione restituisce la socket del client connesso al load balancer.
-In caso di errore durante la connessione, viene stampato un messaggio di errore e il programma viene chiuso.
+* **Ricezione delle risposte dei server dal loadbalancer:**
+La funzione `ricevi_dati_dal_loadbalancer` entra in un ciclo while infinito che mantiene la socket del client in ascolto per ricevere messaggi dal load balancer come sequenze di byte. Tale sequenza viene decodificata convertendo così i dati in una stringa leggibile. Inoltre, viene decrementato il contatore delle richieste `counter_richieste` di uno per tenere traccia del fatto che è stata ricevuta una risposta. Infine, la stringa leggibile vine stampata.
+Il ciclo while continua ad ascoltare per ulteriori messaggi dal load balancer finché non si verifica un errore di socket o finché il programma non viene interrotto.
 
-La socket del client connesso verrà utilizzata per inviare i comandi al load balancer e ricevere le risposte.
-
-Dopo aver stabilito la connessione con il load balancer, la funzione `avvio client` avvia e chiude tre thread:                                                
-##### 1) Interfaccia: prende in imput  i comandi che devono essere eseguiti.
- Digitando "exit" sull'interfaccia, si ha la chiusura della connessione con il server.
-Questi comandi vengono aggiunti alla lista di comandi da eseguire `self.comandi`.
-
-
-##### 2) Invio dei comandi al load balancer.
- La funzione `invia_richieste_al_loadbalancer` controlla se la lista `self.comandi` contiene comandi da inviare: Se la lista è vuota, continua a scorrere il thread senza inviare nulla.
-Se ci sono comandi nella lista, estrae il primo comando e lo assegna alla variabile `comando`.
-
-Se il comando è "exit", imposta la flag `self.chiusura` su True per segnalare che il client sta chiudendo la connessione, converte il comando "exit" in una stringa di byte e lo invia al load balancer tramite la connessione socket, incrementa il contatore `self.counter_richieste` per tener traccia delle richieste inviate e stampa un messaggio di chiusura della connessione con il server.
-
-Se il comando non è "exit", invia il comando, convertito in una stringa di byte, al load balancer tramite la connessione socket e incrementa il contatore `self.counter_richieste` per tener traccia delle richieste inviate.
-
-Dopo l'invio del comando, la funzione continua ad attendere nuovi comandi da inviare. 
-La funzione continua ad eseguire questo ciclo fino a quando il client non decide di chiudere la connessione.
-
-##### 3) Ricezione delle risposte dai server:
-La funzione `ricezione_risposta` verifica due condizioni: 
- 
-Se `self.counter_richieste`, che indica il numero di richieste inviate, è inferiore o uguale a zero, tutte le richieste sono state elaborate e il client può chiudere la connessione con il server interrompendo il loop.
-
-Se la flag `self.chiusura` è impostata su True, il client sta richiedendo la chiusura della connessione tramite il comando "exit" e il loop si interrompe anche in questo caso.
-
-Se nessuna delle due condizioni è verificata, il client rimane in attesa di ricevere una risposta dal server tramite la connessione socket.
-La risposta ricevuta dal server viene quindi decodificata e stampata e il numero di richieste rimanenti viene decrementato di uno.
-
-#### Creazione del comando random:
-La funzione `crea_comando_random` utilizza la funzione `random.choice()` del modulo random di Python per selezionare casualmente uno dei quattro comandi della lista `comandi_possibili`: "somma," "sottrazione," "moltiplicazione," o "divisione".
-
-Il comando selezionato casualmente è memorizzato nella variabile `comando_casuale` e può essere successivamente inviato al load balancer per l'elaborazione del server disponibile.
 
 ### Loadbalancer:
 Affichè il load balancer sia in ascolto per connessioni in arrivo dai client, è stata impostata la porta `self.port` ed è stato specificato l'indirizzo IP `self.ip`(127.0.0.1 per l'ascolto locale).

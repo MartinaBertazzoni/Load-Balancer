@@ -26,17 +26,13 @@ La funzione **`avvio_client`**, è utilizzata per avviare il socket del client, 
   1. **Interfaccia:** La funzione **`interfaccia_utente`** consente l'interazione dell'utente con il cliant. Nello specifico, vengono elencati i file che possono essere selezionati per il trasferimento ai server nella cartella "file".
 Se la cartella non contiene file, il codice genera un'eccezione con il messaggio di errore *"La cartella non ha file al suo interno."* e interrompe il programma.
 Se la cartella contiene file, l'utente viene invitato a inserire un comando tramite *input(" Digita il comando: ")*:
- Se l'utente inserisce il comando "exit", il client mostra il messaggio di chiusura della connessione *`"Chiusura della connessione con il server..."* e termina il programma.
-Se l'utente inserisce il comando "FTP", tramite il messaggio *"Inserisci il numero di file da trasferire: "*, viene richiesto di inserire il numero di file da trasferire.
-- **Selezionati i file da inviare** 
+ Se l'utente inserisce il comando "exit", il client mostra il messaggio di chiusura della connessione *"Chiusura della connessione con il server..."* e termina il programma.
+Se l'utente inserisce il comando "FTP", tramite il messaggio *"Inserisci il numero di file da trasferire: "*, viene richiesto di inserire il numero di file da trasferire `numero_file`. I file vengono selezionati casualmente.Se viene generata un'eccezione durante l'input del numero di file o se l'utente inserisce un comando diverso da "exit" o "FTP," viene visualizzato il messaggio di errore e l'utente viene invitato a riprovare.
 
-La funzione self.scegli_file_da_inviare(numero_file) viene chiamata per gestire la selezione dei file da inviare in base al numero inserito dall'utente.
+     - **Selezione dei file da inviare:** Il metodo **`scegli_file_da_inviare`** ha lo scopo di selezionare e creare una lista di file da inviare ai server FTP.
+Infatti, viene eseguito un loop for che itera per il numero di volte specificato da `numero_file` e, durante ogni iterazione, la funzione chiama il metodo **`scegli_file_random`** per selezionare casualmente un file dalla lista dei file disponibili nella cartella. In seguito, viene composto il percorso completo del file selezionato concatenando `"./file/"` con il nome del file. Questo percorso viene memorizzato nella variabile `filepath` che viene aggiunta alla lista `file_da_inviare` contenente i file da inviare ai server.
 
-Se viene generata un'eccezione durante l'input del numero di file, viene catturata e visualizzata un messaggio di errore, consentendo all'utente di riprovare.
-
-Se l'utente inserisce un comando diverso da "exit" o "FTP," viene visualizzato un messaggio di errore e l'utente viene invitato a riprovare.
-  2. 
-  3. **Invio dei comandi al load balancer:** la funzione **`invia_file_al_loadbalancer`**
+  2. **Invio dei comandi al load balancer:** la funzione **`invia_file_al_loadbalancer`**
  
   4. 
 ##### Connessione al load balancer:

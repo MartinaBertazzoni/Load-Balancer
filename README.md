@@ -78,12 +78,11 @@ Infine, viene cretata una tupla contenente il socket del client, il dizionario f
 In fine, la funzione procede con l'invio dei file JSON:
 
 * **Invio ai Server:**
-
 I file JSON vengono inviati ai server selezionati utilizzando l'algoritmo di bilanciamento del carico Round Robin. A tal proposito, sono resposabili le funzioni:
   
   + **`invia_ai_server`:** Questo metodo si occupa di instradare una richiesta di un client al server appropriato in base all'algoritmo Round Robin. Nello specifico, il metodo ottiene l'indirizzo IP e la porta del server scelto dall'algoritmo di bilanciamento del carico Round Robin; stampa a schermo il messaggio *"Server scelto"* seguito dalla porta del server selezionato; registra l'evento nel file di log `loadbalancer.log`, indicando quale client sta inoltrando la richiesta e quale server riceverà la richiesta; effettua l'effettivo invio del file al server selezionato.
 
-  + **`invia_ai_server`:** Questo metodo si occupa di connettersi al server selezionato e inviare il contenuto del file JSON. Nello specifico, crea una nuova socket `server_socket` per la comunicazione con il server selezionato; incrementa il numero della richiesta elaborata `numero_della_richiesta` per tener traccia delle richieste inoltrate e lo stampa; aggiunge tale nuemro al dizionario `file` con la chiave `numero_richiesta` per identificare univocamente la richiesta; stampa il messaggio *"Ho inviato il file al server{server_port} status: "* ; invia il file JSON codificato al server e chiude la connessione con esso.
+  + **`invia_al_server_scelto`:** Questo metodo si occupa di connettersi al server selezionato e inviare il contenuto del file JSON. Nello specifico, crea una nuova socket `server_socket` per la comunicazione con il server selezionato; incrementa il numero della richiesta elaborata `numero_della_richiesta` per tener traccia delle richieste inoltrate e lo stampa; aggiunge tale nuemro al dizionario `file` con la chiave `numero_richiesta` per identificare univocamente la richiesta; stampa il messaggio *"Ho inviato il file al server{server_port} status: "* ; invia il file JSON codificato al server e chiude la connessione con esso.
  
 * **Monitoraggio dello Stato dei Server:**
 

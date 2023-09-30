@@ -84,7 +84,21 @@ I file JSON vengono inviati ai server selezionati utilizzando l'algoritmo di bil
 
   + **`invia_al_server_scelto`:** Questo metodo si occupa di connettersi al server selezionato e inviare il contenuto del file JSON. Nello specifico, crea una nuova socket `server_socket` per la comunicazione con il server selezionato; incrementa il numero della richiesta elaborata `numero_della_richiesta` per tener traccia delle richieste inoltrate e lo stampa; aggiunge tale nuemro al dizionario `file` con la chiave `numero_richiesta` per identificare univocamente la richiesta; stampa il messaggio *"Ho inviato il file al server{server_port} status: "* ; invia il file JSON codificato al server e chiude la connessione con esso.
  
-* **Monitoraggio dello Stato dei Server:**
+* **Monitoraggio dei Server:** Il monitoraggio dei server viene effettuato con un thread separato che consente di controllare lo stato di connessione dei server, quindi se sono attivi o inattivi, e verifica se sono sovraccarichi o meno. Tale monitoraggio è fondamentale per il funzionamento efficace del load balancer, poiché consente di instradare le richieste solo verso i server disponibili e non sovraccaricati. A tal proposito, svolgono un ruolo fondamentale le funzioni:
+
+  + **`monitoraggio_stato_server`:**
+    Il metodo è implementato come un ciclo infinito in modo che continui costantemente a monitorare lo stato dei server. Il ciclo viene iterato su tutti i server di destinazione della lista `servers` e, per ciascun server, viene creato un oggetto socket `server_socket` di tipo TCP che verrà utilizzato per provare a stabilire una connessione con il server.
+Viene impostato un timeout di 1 secondo per la connessione affichè, se la connessione non riesce entro 1 secondo, verrà sollevata un'eccezione.
+Viene quindi effettuato un tentativo di connessione al server e, se la connessione non riesce,  il server è considerato inattivo e non può servire le richieste dei client. Pertanto, la bandiera corrispondente a quel server nell'elenco `server_flags_connection` viene impostata su False.
+Se la connessione ha successo, il server è considerato attivo e funzionante. In questo caso, la bandiera corrispondente a quel server nell'elenco `server_flags_connection` viene impostata su True e il metodo chiama la funzione:
+
+  + **`monitoraggio_carico_server`:**
+    All'interno del metodo, viene creato un messaggio di richiesta di monitoraggio chiamato `messaggio_di_monitoraggio`. Questo messaggio è un dizionario con una chiave chiamata `request_type` impostata su `richiesta_status`.
+Il messaggio di richiesta viene quindi convertito in una stringa JSON affinchè i dati vengano inviati attraverso la rete.
+Successivamente, il metodo utilizza la socket `server_socket` per inviare il messaggio di richiesta di monitoraggio al server e attende una risposta da esso. La risposta è prevista come un singolo byte che viene convertito in un valore booleano (1 rappresenta True, 0 rappresenta False).
+Infine, il valore booleano ottenuto dalla risposta del server viene memorizzato nella lista `server_sovracarichi` all'indice i, dove True rappresenta lo stato di sovraccarico sovraccarico del server monitorato.
+La socket viene quindi chiusa poiché la comunicazione è stata completata.
+
 
 #### Arresto: chiusura del load balancer in modo controllato.
 La funzione `shutdown` assicura che tutte le connessioni siano chiuse in modo pulito e che tutte le attività in corso siano terminate prima che il programma del load balancer venga terminato. Questo contribuisce a evitare problemi di perdita di dati o connessioni incomplete durante la chiusura del load balancer.

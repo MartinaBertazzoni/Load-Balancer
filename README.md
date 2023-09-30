@@ -54,8 +54,25 @@ Il file `LoadbalancerFTP.py` contiene una classe denominata `LoadBalancer`, che 
 * **Avvio del Load Balancer:**
 Il metodo **`avvio_loadbalancer`** è responsabile dell'avvio del load balancer. La sua funzione principale è quella di inizializzare e configurare il load balancer, creando la socket e connettendo il load balancer ai client. Vengono così chiamati i seguenti metodi:
      - **`creo_socket_loadBalancer:`**
-       Questa funzione crea una socket di tipo IPv4 e di tipo TCP che viene associata all'indirizzo IP `self.ip` e alla porta `self.port` specificati, per essere messa in modalità "ascolto". In tal modo il load balancer può accettare le connessioni in entrata dai client e viene stampato il messaggio *"Server di load balancing in ascolto su {self.ip}:{self.port}".
+       Questa funzione crea una socket di tipo IPv4 e di tipo TCP che viene associata all'indirizzo IP `self.ip` e alla porta `self.port` specificati, per essere messa in modalità "ascolto". In tal modo il load balancer può accettare le connessioni in entrata dai client e viene stampato il messaggio *"Server di load balancing in ascolto su {self.ip}:{self.port}"*.
      - **`connetto_il_client:`**
+       Questo metodo gestisce la connessione tra il load balancer e i client. È responsabile dell'accettare le connessioni in arrivo dai client, avviare un thread separato per la ricezione dei file dal client e un altro thread per gestire la coda delle richieste in arrivo.
+Nello specifico, il metodo utilizza un loop while True per continuare a ricevere connessioni dai client.
+Quando una connessione in arrivo viene accettata, il `client_socket` e il `client_ip` vengono registrati, la connessione accettata viene aggiunta alla lista `clients` e viene visualizzato il messaggio che indica la connessione accettata.
+Un thread denominato `ricezione_file` viene creato per gestire la ricezione dei file dal client e un altro thread viene creato per gestire la coda delle richieste in arrivo dai client. I due thread chiamano rispettivamente i metodi:
+
+       1. **`ricevo_file_dal_client:`** Il metodo utilizza un loop while True per rimanere in attesa di dati in arrivo dal client attraverso la socket. Il load balancer può ricevere fino a 4096 byte di dati come stringa codificata `file_ricevuto`, dal client.
+La funzione verifica se la stringa è vuota. In tal caso il client ha chiuso la connessione, quindi il loop viene interrotto con break.
+Se la stringa contiene dati, viene decodificata da JSON in un dizionario Python, convertendo il contenuto del file inviato dal client in una struttura dati utilizzabile.
+Dal dizionario viene estratto il valore del campo `titolo`, che viene aggiunto alla lista `nomi_file_ricevuti` per tenere traccia dei titoli dei file ricevuti. Viene quindi visualizzato un messaggio che indica il titolo del file ricevuto.
+Infine, viene cretata una tupla contenente il socket del client, il dizionario file e il titolo del file, e questa tupla viene inserita nella coda delle richieste `request_queue`. 
+
+          La coda delle richieste è un componente critico nel sistema di bilanciamento del carico FTP, poiché consente una gestione efficiente, ordinata e asincrona delle richieste dei client e dei file associati, migliorando le prestazioni complessive del sistema.
+       
+       3. **`process_request_queue:`**
+          
+Eventuali eccezioni che si verificano durante la comunicazione con il client vengono gestite, consentendo al loop di continuare a eseguirsi in presenza di errori.
+       
 
 #### Arresto: chiusura del load balancer in modo controllato.
 La funzione `shutdown` assicura che tutte le connessioni siano chiuse in modo pulito e che tutte le attività in corso siano terminate prima che il programma del load balancer venga terminato. Questo contribuisce a evitare problemi di perdita di dati o connessioni incomplete durante la chiusura del load balancer.

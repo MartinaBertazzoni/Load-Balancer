@@ -61,17 +61,25 @@ Nello specifico, il metodo utilizza un loop while True per continuare a ricevere
 Quando una connessione in arrivo viene accettata, il `client_socket` e il `client_ip` vengono registrati, la connessione accettata viene aggiunta alla lista `clients` e viene visualizzato il messaggio che indica la connessione accettata.
 Un thread denominato `ricezione_file` viene creato per gestire la ricezione dei file dal client e un altro thread viene creato per gestire la coda delle richieste in arrivo dai client. I due thread chiamano rispettivamente i metodi:
 
-       1. **`ricevo_file_dal_client:`** Il metodo utilizza un loop while True per rimanere in attesa di dati in arrivo dal client attraverso la socket. Il load balancer può ricevere fino a 4096 byte di dati come stringa codificata `file_ricevuto`, dal client.
+       1. **Ricezione dei File dal Client:** Il metodo **`ricevo_file_dal_client`** utilizza un loop while True per rimanere in attesa di dati in arrivo dal client attraverso la socket. Il load balancer può ricevere fino a 4096 byte di dati come stringa codificata `file_ricevuto`, dal client.
 La funzione verifica se la stringa è vuota. In tal caso il client ha chiuso la connessione, quindi il loop viene interrotto con break.
 Se la stringa contiene dati, viene decodificata da JSON in un dizionario Python, convertendo il contenuto del file inviato dal client in una struttura dati utilizzabile.
 Dal dizionario viene estratto il valore del campo `titolo`, che viene aggiunto alla lista `nomi_file_ricevuti` per tenere traccia dei titoli dei file ricevuti. Viene quindi visualizzato un messaggio che indica il titolo del file ricevuto.
 Infine, viene cretata una tupla contenente il socket del client, il dizionario file e il titolo del file, e questa tupla viene inserita nella coda delle richieste `request_queue`. 
 
           La coda delle richieste è un componente critico nel sistema di bilanciamento del carico FTP, poiché consente una gestione efficiente, ordinata e asincrona delle richieste dei client e dei file associati, migliorando le prestazioni complessive del sistema.
-       
-       3. **`process_request_queue:`**
-          
-Eventuali eccezioni che si verificano durante la comunicazione con il client vengono gestite, consentendo al loop di continuare a eseguirsi in presenza di errori.
+ 
+       2. **Gestione della Coda delle Richieste:** Il metodo **`process_request_queue`** viene eseguito in un ciclo infinito per consentire al load balancer di continuare a elaborare richieste in arrivo da clienti in modo continuo. All'interno del ciclo, il metodo estrae il primo elemento dalla coda delle richieste Questo blocca l'esecuzione finché non è disponibile almeno un elemento nella coda. Una volta disponibile, il metodo estrae tre valori:
+          - client_socket: la socket associata al client che ha inviato la richiesta.
+          - file: i dati del file da inviare ai server, rappresentati come un dizionario.
+          - titolo: il titolo del file ricevuto dalla richiesta.
+            
+          Dopo aver estratto questi dati, il metodo introduce una breve pausa di 0.2 secondi, utile per evitare il sovraccarico del server e dei client durante l'elaborazione continua delle richieste.
+In fine, la funzione procede con l'invio dei file JSON:
+
+* **Invio ai Server:**
+  
+  
        
 
 #### Arresto: chiusura del load balancer in modo controllato.

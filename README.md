@@ -46,11 +46,16 @@ Il ciclo while continua ad ascoltare per ulteriori messaggi dal load balancer fi
 
 
 ### Loadbalancer:
-Affichè il load balancer sia in ascolto per connessioni in arrivo dai client, è stata impostata la porta `self.port` ed è stato specificato l'indirizzo IP `self.ip`(127.0.0.1 per l'ascolto locale).
+Il file `LoadbalancerFTP.py` contiene una classe denominata `LoadBalancer`, che implementa un load balancer in ascolto per connessioni in arrivo dai client.
 
-In seguito, sono stati definiti alcuni metodi:
+* **Inizializzazione del Load Balancer:**
+  Nell'inizializzazione, vengono configurati parametri come la porta `self.port`, l'indirizzo IP `self.ip`, le liste dei server disponibili, le code delle richieste e i thread di monitoraggio. Il log delle attività viene registrato in un file chiamato "loadbalancer.log".
 
-Il metodo `monitor_keyboard_input`, che utilizza il modulo `pynput.keyboard`, è responsabile per la gestione dell'input da tastiera e, in particolare, per la rilevazione della pressione del tasto "esc" per la chiusura del load balancer. Quando il tasto "esc" viene premuto, il listener chiama la funzione `handle_esc_key` che, tramite il flag `shutdown_event`, segnala al loadbalancer che è necessario iniziare la procedura di chiusura.
+* **Avvio del Load Balancer:**
+Il metodo **`avvio_loadbalancer`** è responsabile dell'avvio del load balancer. La sua funzione principale è quella di inizializzare e configurare il load balancer, creando la socket e connettendo il load balancer ai client. Vengono così chiamati i seguenti metodi:
+     - **`creo_socket_loadBalancer:`**
+       Questa funzione crea una socket di tipo IPv4 e di tipo TCP che viene associata all'indirizzo IP `self.ip` e alla porta `self.port` specificati, per essere messa in modalità "ascolto". In tal modo il load balancer può accettare le connessioni in entrata dai client e viene stampato il messaggio *"Server di load balancing in ascolto su {self.ip}:{self.port}".
+     - **`connetto_il_client:`**
 
 #### Arresto: chiusura del load balancer in modo controllato.
 La funzione `shutdown` assicura che tutte le connessioni siano chiuse in modo pulito e che tutte le attività in corso siano terminate prima che il programma del load balancer venga terminato. Questo contribuisce a evitare problemi di perdita di dati o connessioni incomplete durante la chiusura del load balancer.
@@ -65,7 +70,7 @@ La funzione `threading.enumerate()` viene utilizzata per ottenere l'elenco di tu
 
 Infine, una volta che tutti i thread sono stati chiusi e il processo di chiusura è completo, la funzione emette un messaggio di conferma, indicando che il load balancer è stato chiuso correttamente.
 
-#### Connessione tra loadbalancer e server
+#### Connessione tra LoadBalancer e Server
 Con la funzione `creazione_socket_loadBalancer`, viene creata una socket server di tipo TCP, che viene collegata all'indirizzo (`self.ip`) e alla posta (`self.porta`) specificati.
 Una volta configurata la socket, viene chiamato il metodo `listen()` su di essa. Questo metodo mette effettivamente in ascolto la socket, permettendo al load balancer di accettare le connessioni in entrata dai client.
 Viene visualizzato un messaggio di log che indica che il server di load balancing è in ascolto su un certo indirizzo e porta e vengono avviati due thread separati:

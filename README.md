@@ -96,85 +96,23 @@ Se la connessione ha successo, il server è considerato attivo e funzionante. In
     All'interno del metodo, viene creato un messaggio di richiesta di monitoraggio chiamato `messaggio_di_monitoraggio`. Questo messaggio è un dizionario con una chiave chiamata `request_type` impostata su `richiesta_status`.
 Il messaggio di richiesta viene quindi convertito in una stringa JSON affinchè i dati vengano inviati attraverso la rete.
 Successivamente, il metodo utilizza la socket `server_socket` per inviare il messaggio di richiesta di monitoraggio al server e attende una risposta da esso. La risposta è prevista come un singolo byte che viene convertito in un valore booleano (1 rappresenta True, 0 rappresenta False).
-Infine, il valore booleano ottenuto dalla risposta del server viene memorizzato nella lista `server_sovracarichi` all'indice i, dove True rappresenta lo stato di sovraccarico sovraccarico del server monitorato.
+Infine, il valore booleano ottenuto dalla risposta del server viene memorizzato nella lista `server_sovracarichi` all'indice i, dove True rappresenta lo stato di sovraccarico del server monitorato.
 La socket viene quindi chiusa poiché la comunicazione è stata completata.
 
+* **Bilanciamento del Carico --> Algoritmo di ROUND ROBIN:** 
+La funzione **`round_robin`** è un metodo che implementa l'algoritmo di bilanciamento del carico Round Robin. L'obiettivo di questo metodo è selezionare il server successivo a cui inoltrare una richiesta da parte di un client, garantendo una distribuzione equa del carico tra i server disponibili. Il metodo si assicura che il server selezionato sia attivo e non sovraccarico prima di restituire la sua informazione di connessione. 
+Il metodo utilizza un ciclo while True per continuare a cercare un server fino a quando non trova un server disponibile.
+All'interno del ciclo, il metodo seleziona il prossimo server nell'ordine circolare utilizzando l'indice `current_server_index` che tiene traccia del server successivo da selezionare e fornisce l'indirizzo IP la porta del server.
+Viene quindi verificato se il server selezionato è attivo (flag True) e non sovraccarico (flag False). Questo controllo è importante perché si desidera inviare la richiesta solo a server attivi e non sovraccarichi. Se il server selezionato soddisfa questi criteri, il ciclo viene interrotto utilizzando l'istruzione break.
+Se il server selezionato non è attivo o è sovraccarico, l'indice viene incrementato in modo da passare al successivo nell'ordine.
+Alla fine del ciclo, l'indice viene nuovamente incrementato in modo che il prossimo server venga selezionato alla successiva richiesta.
 
-#### Arresto: chiusura del load balancer in modo controllato.
-La funzione `shutdown` assicura che tutte le connessioni siano chiuse in modo pulito e che tutte le attività in corso siano terminate prima che il programma del load balancer venga terminato. Questo contribuisce a evitare problemi di perdita di dati o connessioni incomplete durante la chiusura del load balancer.
-
-Se, atraverso il flug `shutdown_event`, è stata richiesta la chiusura del load balancer, non è necessario eseguire ulteriori operazioni. Se, viceversa, la chiusura non è ancora stata richiesta, la funzione procede con la chiusura del load balancer. 
-
-Per prima cosa, chiude la socket del load balancer, `self.balancer_socket`, se è stata creata. Questo assicura che il load balancer smetta di accettare nuove connessioni dai client.
-Successivamente, chiude tutte le connessioni attive con i client che sono stati aggiunti alla lista `self.active_clients`. Questo garantisce che tutte le connessioni con i client vengano chiuse correttamente prima della chiusura del load balancer.
-
-La funzione poi esegue un ciclo per attendere che tutti i thread attivi, tranne il thread principale, vengano completati.                                       
-La funzione `threading.enumerate()` viene utilizzata per ottenere l'elenco di tutti i thread attivi, e quelli che non sono thread principali e non sono in modalità daemon vengono attesi e chiusi.
-
-Infine, una volta che tutti i thread sono stati chiusi e il processo di chiusura è completo, la funzione emette un messaggio di conferma, indicando che il load balancer è stato chiuso correttamente.
-
-#### Connessione tra LoadBalancer e Server
-Con la funzione `creazione_socket_loadBalancer`, viene creata una socket server di tipo TCP, che viene collegata all'indirizzo (`self.ip`) e alla posta (`self.porta`) specificati.
-Una volta configurata la socket, viene chiamato il metodo `listen()` su di essa. Questo metodo mette effettivamente in ascolto la socket, permettendo al load balancer di accettare le connessioni in entrata dai client.
-Viene visualizzato un messaggio di log che indica che il server di load balancing è in ascolto su un certo indirizzo e porta e vengono avviati due thread separati:
-
-##### 1) Connessione: accettare e gestire le connessioni in entrata dai client.
-La funzione `connessione_client` controlla il flag `shutdown_event`, oggetto `multiprocessing.Event` utilizzato per segnalare la chiusura del load balancer. Il loadbalancer accetta continuamente le connessioni dei client finché il flag di chiusura non è impostato.
-
-E' stato impostato un timeout sulla socket del load balancer utilizzando `settimeout(1)` affinchè il loadbalancer aspetti al massimo un secondo per accettare una connessione prima di continuare l'esecuzione.
-
-Quindi, finchè il flug non viene impostato, il loadbalancer accetta le connessioni in entrata dal client: la funzione `accept` sulla socket del load balancer attende finché un client si connette e quindi restituisce la nuova socket, `client_socket`, specifica per quel client in base al suo indirizzo IP `client_ip`.
-Se una connessione viene accettata entro il timeout di 1 secondo, il client viene aggiunto alla lista `self.clients` che tiene traccia dei client connessi e viene stampato un messaggio sulla console per segnalare la connessione accettata, mostrando l'indirizzo IP e la porta del client.
-
-La lista dei client connessi (`self.clients`) consente al load balancer di gestire simultaneamente più client, aspettando che si connettano e poi aggiungendoli alla lista per l'elaborazione futura delle loro richieste.
-
-##### 2) Gestione della comunicazione con il client:
-La funzione `thread_client` è responsabile della gestione dei client connessi al load balancer attraverso l'uso di thread separati. La lista `active_threads` è utilizzata per tenere traccia dei thread attivi, ossia i thread che gestiscono le connessioni dei client.
-
-Finchè il codice è in esecuzione, la funzione verifica se la lista `self.clients`, contiene client che sono in attesa di essere eseguiti in quanto hanno stabilito una connessione con il load balancer ma non sono ancora stati associati a un thread per la gestione delle loro richieste.
-Quindi, la funzione estrae il primo client dalla lista self.clients rimuovendolo e lo aggiunge alla lista `self.active_clients`.
-
-Viene creato un nuovo thread chiamato `client_thread` che, quando viene avviato, fa sì che ogni client connesso riceva un thread dedicato per gestire le sue richieste.
-opo aver avviato il thread per un client, la funzione continua a controllare la lista active_threads per verificare se ci sono thread che hanno completato la loro esecuzione.
-Se un thread nella lista active_threads ha completato la sua esecuzione, il thread viene rimosso dalla lista e il ciclo continua a controllare gli altri thread.
-
-Questo approccio multithreading è fondamentale per consentire al load balancer di essere reattivo e gestire più client contemporaneamente.
-
-La funzione `gestione_comunicazione_client` è responsabile della gestione della comunicazione con i client che si connettono al load balancer. 
-La funzione attende la ricezione dei comandi dal client attraverso il socket `client_socket` che, una volta ricevuti dal client, vengono memorizzati nella variabile `data` e vengono decodificati dalla rappresentazione binaria in una stringa. La funzione, quindi, verifica il comando ricevuto dal client:
-
-Se il comando è "exit", il client sta chiudendo la connessione e la funzione invia una risposta al client confermando la disconnessione, quindi elimina dalla lista dei clients attivi `active_clients` il client che si sta disconnettendo e termina il ciclo.
-
-Se il comando ricevuto non è "exit", il load balancer stampa il messaggio che ha ricevuto dal client. L'esecuzione del comando viene svolta dalla funzione `esegui_comandi`.
-
-...
-
-#### Bilanciamento del carico: algoritmo di ROUND ROBIN
-La funzione `round_robin` è un metodo che implementa l'algoritmo di bilanciamento del carico Round Robin. L'obiettivo di questo metodo è selezionare il server successivo a cui inoltrare una richiesta da parte di un client, garantendo una distribuzione equa del carico tra i server disponibili.
-
-La funzione monitora lo stato dei server chiamando il metodo monitoraggio_server:
-##### Monitoraggio dei server:
-La funzione `monitoraggio_server` controlla se i server sono attivi attraverso un tentativo di connessione alla porta del server utilizzando una socket `server_socket`. 
-
-Se il tentativo di connessione riesce senza errori, il server è attivo e operativo e la funzione imposta il flag corrispondente a quel server nella lista `self.server_flags` su True.
-
-Se il tentativo di connessione fallisce, significa che il server non è attivo o non è raggiungibile. In tal caso, il flag corrispondente a quel server nella lista self.server_flags viene impostato su False.
-
-Monitorato lo stato dei server, il metodo sceglie il prossimo server a cui inoltrare la richiesta nell'ordine circolare: Inizia dal primo server nell'elenco e prosegue fino all'ultimo, quindi torna indietro e riparte dal server di partenza.
-La funzione verifica, attraverso il flag corrispondente nell'elenco `self.server_flags` se il server è considerato attivo:
-
-Se il server è attivo, viene selezionato per l'inoltro e l'indice del server corrente viene incrementato in modo che la prossima richiesta venga inoltrata al server successivo nell'ordine circolare.
-
-Se il server selezionato non è attivo, il comando viene inoltrato al server attivo successivo, nell'ordine circolare.
-
-Alla fine, il metodo restituisce l'indirizzo IP e la porta del server selezionato, che verranno utilizzati per inoltrare la richiesta del client a questo server specifico.
-
-#### Inoltro del messaggio dal client al server:
-La funzione `route_message` viene chiamata quando il load balancer ha ricevuto un messaggio da un client e ha bisogno di instradarlo a uno dei server disponibili.
-Scelto il server di destinazione, secondo l'algoritmo di Round Robin descritto precednetemente, la funzione crea una connessione socket verso quel server utilizzando l'indirizzo IP (`server_address`) e la porta del server (`server_port`). Il messaggio ricevuto dal client viene inoltrato al server attraverso la socket appena creata, la funzione attende una risposta dal server, che viene ricevuta tramite la socket e può contenere il risultato dell'elaborazione del comando da parte del server, e la risposta viene inviata al client originale tramite la sua connessione socket. In questo modo, il client riceve la risposta alla sua richiesta.
-La connessione socket tra il load balancer e il server viene quindi chiusa.
-
-La funzione ha completato il processo di instradamento del messaggio e ritorna al loop principale del load balancer, pronto a gestire la prossima richiesta da un client.
+* **Ricezione delle Risposte dal Server:**
+Il metodo **`ricevi_risposta_server`** ha lo scopo di ricevere le risposte inviate dal server al Load Balancer e quindi inoltrarle al client. Questo consente al Load Balancer di agire come intermediario tra il client e il server, garantendo che le risposte dal server raggiungano il client corretto.
+All'interno del metodo, viene utilizzata una struttura try-except per gestire eventuali eccezioni che possono verificarsi durante la comunicazione con il server.
+All'interno del blocco try, il metodo riceve fino a 1024 byte di dati dal server tramite la socket `server_socket` e li decodifica. Il risultato viene memorizzato nella variabile `message_from_server` e tale messaggio ricevuto dal server viene stampato sulla console.
+Infine, il metodo invia il messaggio ricevuto dal server al client utilizzando la socket `client_socket`. In questo modo, il client riceverà la risposta dal server attraverso il Load Balancer.
+All'interno del blocco except, vengono gestite eventuali eccezioni di socket, ad esempio se si verifica un errore durante la comunicazione con il server. In tal caso, viene stampato il messaggio di errore *"Impossibile ricevere dati dal server: {error}"* e il programma viene terminato.
 
 ### Server
 #### Connessione:

@@ -115,6 +115,38 @@ Infine, il metodo invia il messaggio ricevuto dal server al client utilizzando l
 All'interno del blocco except, vengono gestite eventuali eccezioni di socket, ad esempio se si verifica un errore durante la comunicazione con il server. In tal caso, viene stampato il messaggio di errore *"Impossibile ricevere dati dal server: {error}"* e il programma viene terminato.
 
 ### Server
+I file `ServerFTP.py`, `ServerFTP2.py` e `ServerFTP3.py`  rappresentano le implemnetazioni di tre server FTP  di base che gestiscono il ricevimento e il salvataggio di file di testo inviati da un load balancer. I server sono progettati per monitorare continuamente il loro stato di carico CPU e agire di conseguenza in situazioni di sovraccarico.
+
+* **Inizializzazione dei Server:**
+La classe `Server` è definita all'interno dei file, e al momento dell'inizializzazione, imposta variabili di stato come l'indirizzo IP, la porta su cui è in ascolto e la socket. Inoltre, tiene traccia delle richieste attualmente attive gestite e dello stato di sovraccarico  e avvia un thread di monitoraggio del carico della CPU del server.
+
+* **Avvio dei Server:**
+Il metodo **`avvio_server`** prepara il server per iniziare a ricevere e gestire le richieste dal load balancer. Questo processo prevede, in primis, la rimozione di tutti i file presenti nella directory di salvataggio `json_files_1` affinchè la directory sia vuota ogni volta che il server viene avviato e i nuovi file siano salvati in una directory pulita.
+Successivamente viene creare la socket e il server viene connesso al loadbalancer in modo che sia pronto per accettare le connessioni in ingresso.
+
+* **Creazione delle Socket dei Server:**
+La funzione **`creo_socket_server`** crea la socket del server, la collega a un indirizzo IP e ad una porta specifici e mette la mette in ascolto su di essi per le connessioni in ingresso da parte del client. In fine, viene stampato il messaggio nella console che indica che il server è in ascolto su un determinato indirizzo IP e porta.
+
+* **Connessione dei Server al Load Balancer:**
+Il metodo **`connetto_il_loadbalancer`** è implementato come un ciclo infinito che viene eseguito costantemente per aspettare e gestire le connessioni in entrata dal load balancer.
+E' stato impostato un timeout sulla socket del server per evitare che il server rimanga bloccato in attesa di connessioni indefinitamente. Quindi, la socket attende per un massimo di 1 secondo.
+Inoltre, all'interno del loop principale, c'è un blocco try-except per gestire eventuali eccezioni e per assicurarsi che il server continui a funzionare anche in caso di errori.
+Dentro il blocco try, il server attende una connessione in entrata  e, quando una connessione è stabilita con successo, viene restituita una nuova socket denominata `richiesta_socket` e l'indirizzo IP del load balancer viene memorizzato in `richiesta_ip`.
+La richiesta_socket viene aggiunta alla lista delle richieste attive del server `active_requests`. Questa lista tiene traccia delle connessioni attive in modo che il server possa gestirle in modo appropriato.
+Successivamente, viene creato un nuovo thread denominato `ricezione_dati`. Questo thread è responsabile per la gestione della richiesta appena accettata e richiama il metodo:
+
+  + **`ricevo_file_dal_loadbalancer`:**
+
+    
+Il nuovo thread ricezione_dati viene avviato tramite ricezione_dati.start(). Questo significa che il server può gestire più richieste contemporaneamente, ciascuna in un thread separato.
+
+Dopo aver avviato il thread, il ciclo continua ad aspettare altre connessioni. Se si verifica un timeout sulla socket (socket.timeout), il loop continua senza interrompersi.
+
+Infine, il codice verifica se la richiesta_socket non è più nell'elenco delle richieste attive (if richiesta_socket not in self.active_requests). In tal caso, il thread ricezione_dati viene atteso (ricezione_dati.join()) e terminato.
+
+All'esterno del loop principale, è presente un blocco except per gestire eccezioni generiche. Se si verifica un errore durante la connessione con il load balancer, viene stampato un messaggio di errore, ma il server continua ad ascoltare per ulteriori connessioni.
+
+In sintesi, questa funzione è responsabile per accettare e gestire le connessioni in entrata dal load balancer, avviando un thread separato per gestire ciascuna connessione in modo concorrente.
 #### Connessione:
 La funzione `socket_server` è responsabile per la creazione della socket TCP del server e l'avvio di un thread separato che rimarrà in ascolto per ricevere i comandi dal load balancer.
 Creata la socket, il server la collega a un indirizzo IP e una porta specifici utilizzando il metodo `bind`.

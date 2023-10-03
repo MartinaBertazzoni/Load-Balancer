@@ -124,7 +124,7 @@ La classe `Server` è definita all'interno dei file, e al momento dell'inizializ
 Il metodo **`avvio_server`** prepara il server per iniziare a ricevere e gestire le richieste dal load balancer. Questo processo prevede, in primis, la rimozione di tutti i file presenti nella directory di salvataggio `json_files_1` affinchè la directory sia vuota ogni volta che il server viene avviato e i nuovi file siano salvati in una directory pulita.
 Successivamente viene creare la socket e il server viene connesso al loadbalancer in modo che sia pronto per accettare le connessioni in ingresso.
 
-1) **Pulizia della directory dei Server:**
+   1. **Pulizia della directory dei Server:**
    La funzione **`svuota_directory_json_files`** ha lo scopo di svuotare il contenuto della directory `json_files_1` ogni volta che il codice viene riavviato. Nello specifico, viene definito il percorso della directory da svuotare, che è "json_files_1". Questo percorso è utilizzato per verificare l'esistenza della directory e per ottenere la lista dei file al suo interno.
 E' stato inserito un blocco try-except per gestire le eccezioni che potrebbero verificarsi durante l'esecuzione del codice all'interno di questo blocco.
 Se la cartella non esiste, viene creata la cartella "json_files_1" garantendo che la cartella esista anche se non è stata creata in precedenza.
@@ -132,10 +132,10 @@ Un ciclo itera attraverso tutti i file presenti nella directory "json_files_1" e
 Se il percorso file_path corrisponde a un file e se il nome del file termina con l'estensione ".json" viene rimosso, assicurando che i file JSON all'interno della directory vengano eliminati dalla directory.
 Se durante l'esecuzione del codice all'interno del blocco try si verifica un'eccezione, viene stampato un messaggio di errore che include l'eccezione stessa.
 
-2) **Creazione delle Socket dei Server:**
+   2. **Creazione delle Socket dei Server:**
 La funzione **`creo_socket_server`** crea la socket del server, la collega a un indirizzo IP e ad una porta specifici e mette la mette in ascolto su di essi per le connessioni in ingresso da parte del client. In fine, viene stampato il messaggio nella console che indica che il server è in ascolto su un determinato indirizzo IP e porta.
 
-3) **Connessione dei Server al Load Balancer:**
+   3. **Connessione dei Server al Load Balancer:**
 Il metodo **`connetto_il_loadbalancer`** è implementato come un ciclo infinito che viene eseguito costantemente per aspettare e gestire le connessioni in entrata dal load balancer.
 E' stato impostato un timeout sulla socket del server per evitare che il server rimanga bloccato in attesa di connessioni indefinitamente. Quindi, la socket attende per un massimo di 1 secondo.
 Inoltre, all'interno del loop principale, c'è un blocco try-except per gestire eventuali eccezioni e per assicurarsi che il server continui a funzionare anche in caso di errori.
@@ -143,7 +143,7 @@ Dentro il blocco try, il server attende una connessione in entrata  e, quando un
 La richiesta_socket viene aggiunta alla lista delle richieste attive del server `active_requests`. Questa lista tiene traccia delle connessioni attive in modo che il server possa gestirle in modo appropriato.
 Successivamente, viene creato un nuovo thread denominato `ricezione_dati`che richiama il metodo:
 
-  + **Ricezione dei File dal Load Balancer:** La funzione **`ricevo_file_dal_loadbalancer`** è responsabile della gestione della ricezione dei file inviati dal load balancer al server ed è è chiamata per ogni connessione in entrata da parte del load balancer.
+      + **Ricezione dei File dal Load Balancer:** La funzione **`ricevo_file_dal_loadbalancer`** è responsabile della gestione della ricezione dei file inviati dal load balancer al server ed è è chiamata per ogni connessione in entrata da parte del load balancer.
 Per gestire eventuali eccezioni e assicurarsi che il server continui a funzionare anche in caso di errori, c'è un blocco try-except.
 Affinchè il server rimanga in attesa di dati in arrivo dal load balancer, è stato inserito un ciclo while che continuerà a eseguire finché la ricezione dei dati è terminata (`not file`), oppure viene ricevuta una richiesta diversa da `file_di_testo`.
 Quindi, il server riceve dati dalla socket sotto forma di stringa che viene memorizzata nella variabile `file`.
@@ -154,7 +154,7 @@ Se la richiesta non è di tipo "file_di_testo", il server invierà uno status di
 Inoltre, vi è un'eccezione che viene catturata e memorizzata nella variabile `e` e viene stampato un messaggio di errore che indica il problema.
 Infaine, richiesta_socket viene rimosso dalla lista delle richieste attive e viene chiusa.
  
-  Quindi, il thread viene avviato e il server può gestire più richieste contemporaneamente, ciascuna in un thread separato.
+      Quindi, il thread viene avviato e il server può gestire più richieste contemporaneamente, ciascuna in un thread separato.
 Dopo aver avviato il thread, il ciclo continua ad aspettare altre connessioni. Se si verifica un timeout sulla socket, il loop continua senza interrompersi.
 Infine, il codice verifica se la richiesta_socket non è più nell'elenco delle richieste attive. In tal caso, il thread viene atteso e terminato.
 All'esterno del loop principale, è presente un blocco except per gestire eccezioni generiche. Se si verifica un errore durante la connessione con il load balancer, viene stampato il messaggio di errore *"Errore durante la connessione con il loadbalancer:"*, ma il server continua ad ascoltare per ulteriori connessioni.
@@ -171,7 +171,10 @@ Quindi, viene creato il nome del file completo `json_filename` includendo il per
 In seguito, viene effettuata una verifica sull'esistenza o meno della cartella. Se la cartella non esiste, viene creata, garantendo che la cartella sia presente per salvare il file.
 Il contenuto del file da salvare (contenuto) viene scritto nel file appena creato.
 
-
+* **Invio delle Risposte al LoadBalancer:**
+  
+* **Monitoraggio del Carico dei Server:**
+  
 ## Future Implementazioni
 
 ### Modificare il numero di treath:

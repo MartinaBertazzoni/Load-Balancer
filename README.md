@@ -152,9 +152,16 @@ Infine, il codice verifica se la richiesta_socket non è più nell'elenco delle 
 All'esterno del loop principale, è presente un blocco except per gestire eccezioni generiche. Se si verifica un errore durante la connessione con il load balancer, viene stampato il messaggio di errore *"Errore durante la connessione con il loadbalancer:"*, ma il server continua ad ascoltare per ulteriori connessioni.
 
 * **Simulazione di una Situazione di Sovraccarico per il Server:**
-  La funzione `conta_a` è progettata per contare il numero di lettere "A" (sia maiuscole che minuscole) all'interno del testo, `contenuto`, di un file ricevuto, simulando una situazione di sovraccarico per il server.
+  La funzione **`conta_a`** è progettata per contare il numero di lettere "A" (sia maiuscole che minuscole) all'interno del testo, `contenuto`, di un file ricevuto, simulando una situazione di sovraccarico per il server.
 Nello specifico viene inizializzata una variabile `count_a` che è utilizzata per tenere traccia del numero di lettere "A" trovate nel testo.
 Un ciclo for itera attraverso tutti i caratteri nel testo contenuto verificando se il carattere corrente è una "a" minuscola o una "A" maiuscola. Se è vero, incrementa il valore di count_a di 1. Dopo aver verificato un carattere, la funzione introduce un ritardo di 0.5 secondi che serve a simulare una situazione di sovraccarico del server.
+
+* **Salvataggio del File Ricevuto dal Server:** Il metodo **`salvo_file_ricevuto`** 
+ha lo scopo di salvare un file ricevuto all'interno della cartella `json_files_1`. 
+Come prima cosa, viene generato un nome di file univoco basato sul timestamp corrente. Il timestamp restituisce un tempo in secondi che viene convertito in una stringa che fornisce un numero univoco basato sul tempo.
+Quindi, viene creato il nome del file completo `json_filename` includendo il percorso alla cartella json_files_1, il timestamp univoco e il titolo del file.
+In seguito, viene effettuata una verifica sull'esistenza o meno della cartella. Se la cartella non esiste, viene creata, garantendo che la cartella sia presente per salvare il file.
+Il contenuto del file da salvare (contenuto) viene scritto nel file appena creato.
 
 
 ## Future Implementazioni

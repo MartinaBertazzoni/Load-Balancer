@@ -133,20 +133,25 @@ E' stato impostato un timeout sulla socket del server per evitare che il server 
 Inoltre, all'interno del loop principale, c'è un blocco try-except per gestire eventuali eccezioni e per assicurarsi che il server continui a funzionare anche in caso di errori.
 Dentro il blocco try, il server attende una connessione in entrata  e, quando una connessione è stabilita con successo, viene restituita una nuova socket denominata `richiesta_socket` e l'indirizzo IP del load balancer viene memorizzato in `richiesta_ip`.
 La richiesta_socket viene aggiunta alla lista delle richieste attive del server `active_requests`. Questa lista tiene traccia delle connessioni attive in modo che il server possa gestirle in modo appropriato.
-Successivamente, viene creato un nuovo thread denominato `ricezione_dati`. Questo thread è responsabile per la gestione della richiesta appena accettata e richiama il metodo:
+Successivamente, viene creato un nuovo thread denominato `ricezione_dati`che richiama il metodo:
 
-  + **`ricevo_file_dal_loadbalancer`:**
+  + **Ricezione dei File dal Load Balancer:** La funzione **`ricevo_file_dal_loadbalancer`** è responsabile della gestione della ricezione dei file inviati dal load balancer al server ed è è chiamata per ogni connessione in entrata da parte del load balancer.
+Per gestire eventuali eccezioni e assicurarsi che il server continui a funzionare anche in caso di errori, c'è un blocco try-except.
+Affinchè il server rimanga in attesa di dati in arrivo dal load balancer, è stato inserito un ciclo while che continuerà a eseguire finché la ricezione dei dati è terminata (`not file`), oppure viene ricevuta una richiesta diversa da `file_di_testo`.
+Quindi, il server riceve dati dalla socket sotto forma di stringa che viene memorizzata nella variabile `file`.
+Se la variabile file non è vuota, il suo contenuto viene decodificato e memorizzato nella variabile `json_data` come un dizionario Python.
+Viene estratto il valore associato alla chiave `request_type` che rappresenta il tipo di richiesta inviata dal load balancer.
+Se il tipo di richiesta è "file_di_testo", vengono estratti il titolo e il contenuto del file dal dizionario e il codice seguente gestirà l'elaborazione del contenuto e il salvataggio del file, seguito da un messaggio di conferma che viene stampato per indicare che il file è stato ricevuto e salvato con successo.
+Se la richiesta non è di tipo "file_di_testo", il server invierà uno status di sovraccarico al load balancer.
+Inoltre, vi è un'eccezione che viene catturata e memorizzata nella variabile `e` e viene stampato un messaggio di errore che indica il problema.
+Infaine, richiesta_socket viene rimosso dalla lista delle richieste attive e viene chiusa.
+ 
+  Quindi, il thread viene avviato e il server può gestire più richieste contemporaneamente, ciascuna in un thread separato.
+Dopo aver avviato il thread, il ciclo continua ad aspettare altre connessioni. Se si verifica un timeout sulla socket, il loop continua senza interrompersi.
+Infine, il codice verifica se la richiesta_socket non è più nell'elenco delle richieste attive. In tal caso, il thread viene atteso e terminato.
+All'esterno del loop principale, è presente un blocco except per gestire eccezioni generiche. Se si verifica un errore durante la connessione con il load balancer, viene stampato il messaggio di errore *"Errore durante la connessione con il loadbalancer:"*, ma il server continua ad ascoltare per ulteriori connessioni.
 
-    
-Il nuovo thread ricezione_dati viene avviato tramite ricezione_dati.start(). Questo significa che il server può gestire più richieste contemporaneamente, ciascuna in un thread separato.
 
-Dopo aver avviato il thread, il ciclo continua ad aspettare altre connessioni. Se si verifica un timeout sulla socket (socket.timeout), il loop continua senza interrompersi.
-
-Infine, il codice verifica se la richiesta_socket non è più nell'elenco delle richieste attive (if richiesta_socket not in self.active_requests). In tal caso, il thread ricezione_dati viene atteso (ricezione_dati.join()) e terminato.
-
-All'esterno del loop principale, è presente un blocco except per gestire eccezioni generiche. Se si verifica un errore durante la connessione con il load balancer, viene stampato un messaggio di errore, ma il server continua ad ascoltare per ulteriori connessioni.
-
-In sintesi, questa funzione è responsabile per accettare e gestire le connessioni in entrata dal load balancer, avviando un thread separato per gestire ciascuna connessione in modo concorrente.
 #### Connessione:
 La funzione `socket_server` è responsabile per la creazione della socket TCP del server e l'avvio di un thread separato che rimarrà in ascolto per ricevere i comandi dal load balancer.
 Creata la socket, il server la collega a un indirizzo IP e una porta specifici utilizzando il metodo `bind`.

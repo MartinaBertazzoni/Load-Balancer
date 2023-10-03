@@ -151,42 +151,11 @@ Dopo aver avviato il thread, il ciclo continua ad aspettare altre connessioni. S
 Infine, il codice verifica se la richiesta_socket non è più nell'elenco delle richieste attive. In tal caso, il thread viene atteso e terminato.
 All'esterno del loop principale, è presente un blocco except per gestire eccezioni generiche. Se si verifica un errore durante la connessione con il load balancer, viene stampato il messaggio di errore *"Errore durante la connessione con il loadbalancer:"*, ma il server continua ad ascoltare per ulteriori connessioni.
 
+* **Simulazione di una Situazione di Sovraccarico per il Server:**
+  La funzione `conta_a` è progettata per contare il numero di lettere "A" (sia maiuscole che minuscole) all'interno del testo, `contenuto`, di un file ricevuto, simulando una situazione di sovraccarico per il server.
+Nello specifico viene inizializzata una variabile `count_a` che è utilizzata per tenere traccia del numero di lettere "A" trovate nel testo.
+Un ciclo for itera attraverso tutti i caratteri nel testo contenuto verificando se il carattere corrente è una "a" minuscola o una "A" maiuscola. Se è vero, incrementa il valore di count_a di 1. Dopo aver verificato un carattere, la funzione introduce un ritardo di 0.5 secondi che serve a simulare una situazione di sovraccarico del server.
 
-#### Connessione:
-La funzione `socket_server` è responsabile per la creazione della socket TCP del server e l'avvio di un thread separato che rimarrà in ascolto per ricevere i comandi dal load balancer.
-Creata la socket, il server la collega a un indirizzo IP e una porta specifici utilizzando il metodo `bind`.
-Dopo aver effettuato il binding della socket, il server la mette in ascolto, utilizzando il metodo `listen`, così che sia pronto ad accettare le connessioni in arrivo dai client sulla porta specificata.
-
-Successivamente, la funzione crea un thread separato chiamato `thread_gestione_client`, responsabile di rimanere in ascolto per le richieste provenienti dal load balancer e gestirle.
-Quando il thread viene avviato, esegue il codice nel metodo `self.gestione_client`e, con il metodo il metodo `start()`, l'esecuzuione avviene in parallelo al thread principale del server.
-Una volta avviato il thread di ascolto, la funzione socket_server termina.
-
-#### Gestione del client:
-La funzione `gestione_client` accetta le connessioni dei client e avvia un thread separato per gestire ciascun client.
-
-La funzione è in attesa di accettare una connessione in entrata da un client tramite `server_socket.accept()`e, quando una connessione viene accettata, restituisce una nuova socket `client_socket` e l'indirizzo IP del client `client_ip`.
-
-Accettata una connessione da un client , la funzione avvia un nuovo thread responsabile di gestire tutte le comunicazioni tra il server e il client specifico.
-Il thread viene creato utilizzando la funzione `richieste_client`.
-
-#### Gestione delle richieste: 
-La funzione `richieste_client` gestisce la comunicazione tra il server e il client: riceve comandi dal client tramite il `client_socket`, li elabora eseguendoli e invia le risposte al client.
-
-Ricevuta le richiesta, viene effettuato un controllo per verificare la ricezione dei dati . Se non sono stati ricevuti comandi nuovi, la funzione esce dal ciclo e termina.
-Una volta ricevuto un comando dal client, la funzione lo decodifica e procede ad elaborarlo.
-La funzione chiama il metodo `esegui_comandi` per eseguire il comando ricevuto e memorizza il risultato dell'elaborazione in una variabile `risultato`.
-Il risultato viene convertito in una stringa ed inviato al client utilizzando il metodo `sendall()` del client_socket. 
-La funzione continua a rimanere in attesa di ulteriori comandi dallo stesso client fintanto che la connessione non viene chiusa dal client o dal server (client o server).
-
-#### Esecuzione dei comandi:
-La funzione `esegui_comandi` genera A e B, numeri interi generati casualmente tra 1 e 50, esegue un'operazione matematica specificata dal comando ricevuto dal client ("somma", "sottrazione", "moltiplicazione" o "divisione") e restituisce un dizionario che contiene i valori di `A`, `B`, il comando (`operazione`) e il `risultato` dell'operazione.
-Il dizionario creato viene restituito come risultato della funzione. 
-
-Dopo aver avviato il thread per gestire il client corrente, utilizzando la funzione `richieste_client`, la funzione torna indietro e continua ad ascoltare nuove connessioni dai client.
-Poiché ogni client ha il proprio thread dedicato, il server può gestire più client contemporaneamente.
-
-Quando un client si disconnette o viene chiusa la connessione con il client, il thread termina.
-Questo ciclo di ascolto e gestione dei client continua fino a quando il server è in esecuzione.
 
 ## Future Implementazioni
 

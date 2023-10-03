@@ -124,10 +124,18 @@ La classe `Server` è definita all'interno dei file, e al momento dell'inizializ
 Il metodo **`avvio_server`** prepara il server per iniziare a ricevere e gestire le richieste dal load balancer. Questo processo prevede, in primis, la rimozione di tutti i file presenti nella directory di salvataggio `json_files_1` affinchè la directory sia vuota ogni volta che il server viene avviato e i nuovi file siano salvati in una directory pulita.
 Successivamente viene creare la socket e il server viene connesso al loadbalancer in modo che sia pronto per accettare le connessioni in ingresso.
 
-* **Creazione delle Socket dei Server:**
+1) **Pulizia della directory dei Server:**
+   La funzione **`svuota_directory_json_files`** ha lo scopo di svuotare il contenuto della directory `json_files_1` ogni volta che il codice viene riavviato. Nello specifico, viene definito il percorso della directory da svuotare, che è "json_files_1". Questo percorso è utilizzato per verificare l'esistenza della directory e per ottenere la lista dei file al suo interno.
+E' stato inserito un blocco try-except per gestire le eccezioni che potrebbero verificarsi durante l'esecuzione del codice all'interno di questo blocco.
+Se la cartella non esiste, viene creata la cartella "json_files_1" garantendo che la cartella esista anche se non è stata creata in precedenza.
+Un ciclo itera attraverso tutti i file presenti nella directory "json_files_1" e, all'interno, viene creato il percorso completo di ciascun file nella directory e viene effettuata la seguente verifica: 
+Se il percorso file_path corrisponde a un file e se il nome del file termina con l'estensione ".json" viene rimosso, assicurando che i file JSON all'interno della directory vengano eliminati dalla directory.
+Se durante l'esecuzione del codice all'interno del blocco try si verifica un'eccezione, viene stampato un messaggio di errore che include l'eccezione stessa.
+
+2) **Creazione delle Socket dei Server:**
 La funzione **`creo_socket_server`** crea la socket del server, la collega a un indirizzo IP e ad una porta specifici e mette la mette in ascolto su di essi per le connessioni in ingresso da parte del client. In fine, viene stampato il messaggio nella console che indica che il server è in ascolto su un determinato indirizzo IP e porta.
 
-* **Connessione dei Server al Load Balancer:**
+3) **Connessione dei Server al Load Balancer:**
 Il metodo **`connetto_il_loadbalancer`** è implementato come un ciclo infinito che viene eseguito costantemente per aspettare e gestire le connessioni in entrata dal load balancer.
 E' stato impostato un timeout sulla socket del server per evitare che il server rimanga bloccato in attesa di connessioni indefinitamente. Quindi, la socket attende per un massimo di 1 secondo.
 Inoltre, all'interno del loop principale, c'è un blocco try-except per gestire eventuali eccezioni e per assicurarsi che il server continui a funzionare anche in caso di errori.
@@ -151,12 +159,12 @@ Dopo aver avviato il thread, il ciclo continua ad aspettare altre connessioni. S
 Infine, il codice verifica se la richiesta_socket non è più nell'elenco delle richieste attive. In tal caso, il thread viene atteso e terminato.
 All'esterno del loop principale, è presente un blocco except per gestire eccezioni generiche. Se si verifica un errore durante la connessione con il load balancer, viene stampato il messaggio di errore *"Errore durante la connessione con il loadbalancer:"*, ma il server continua ad ascoltare per ulteriori connessioni.
 
-* **Simulazione di una Situazione di Sovraccarico per il Server:**
+* **Simulazione di una Situazione di Sovraccarico per i Server:**
   La funzione **`conta_a`** è progettata per contare il numero di lettere "A" (sia maiuscole che minuscole) all'interno del testo, `contenuto`, di un file ricevuto, simulando una situazione di sovraccarico per il server.
 Nello specifico viene inizializzata una variabile `count_a` che è utilizzata per tenere traccia del numero di lettere "A" trovate nel testo.
 Un ciclo for itera attraverso tutti i caratteri nel testo contenuto verificando se il carattere corrente è una "a" minuscola o una "A" maiuscola. Se è vero, incrementa il valore di count_a di 1. Dopo aver verificato un carattere, la funzione introduce un ritardo di 0.5 secondi che serve a simulare una situazione di sovraccarico del server.
 
-* **Salvataggio del File Ricevuto dal Server:** Il metodo **`salvo_file_ricevuto`** 
+* **Salvataggio del File Ricevuto dai Server:** Il metodo **`salvo_file_ricevuto`** 
 ha lo scopo di salvare un file ricevuto all'interno della cartella `json_files_1`. 
 Come prima cosa, viene generato un nome di file univoco basato sul timestamp corrente. Il timestamp restituisce un tempo in secondi che viene convertito in una stringa che fornisce un numero univoco basato sul tempo.
 Quindi, viene creato il nome del file completo `json_filename` includendo il percorso alla cartella json_files_1, il timestamp univoco e il titolo del file.

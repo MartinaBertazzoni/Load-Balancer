@@ -44,7 +44,6 @@ Se si verifica un errore di comunicazione durante l'invio, viene catturata un'ec
 La funzione `ricevi_dati_dal_loadbalancer` entra in un ciclo while infinito che mantiene la socket del client in ascolto per ricevere messaggi dal load balancer come sequenze di byte. Tale sequenza viene decodificata convertendo così i dati in una stringa leggibile. Inoltre, viene decrementato il contatore delle richieste `counter_richieste` di uno per tenere traccia del fatto che è stata ricevuta una risposta. Infine, la stringa leggibile vine stampata.
 Il ciclo while continua ad ascoltare per ulteriori messaggi dal load balancer finché non si verifica un errore di socket o finché il programma non viene interrotto.
 
-
 ### Loadbalancer:
 Il file `LoadbalancerFTP.py` contiene una classe denominata `LoadBalancer`, che implementa un load balancer in ascolto per connessioni in arrivo dai client.
 
@@ -69,7 +68,7 @@ Infine, viene cretata una tupla contenente il socket del client, il dizionario f
 
           La coda delle richieste è un componente critico nel sistema di bilanciamento del carico FTP, poiché consente una gestione efficiente, ordinata e asincrona delle richieste dei client e dei file associati, migliorando le prestazioni complessive del sistema.
  
-       2. **Gestione della Coda delle Richieste:** Il metodo **`process_request_queue`** viene eseguito in un ciclo infinito per consentire al load balancer di continuare a elaborare richieste in arrivo da clienti in modo continuo. All'interno del ciclo, il metodo estrae il primo elemento dalla coda delle richieste Questo blocca l'esecuzione finché non è disponibile almeno un elemento nella coda. Una volta disponibile, il metodo estrae tre valori:
+       2. **Gestione della Coda delle Richieste:** Il metodo **`process_request_queue`** viene eseguito in un ciclo infinito per consentire al load balancer di continuare a elaborare richieste in arrivo da clienti in modo continuo. All'interno del ciclo, il metodo estrae il primo elemento dalla coda delle richieste. Questo blocca l'esecuzione finché non è disponibile almeno un elemento nella coda. Una volta disponibile, il metodo estrae tre valori:
           - client_socket: la socket associata al client che ha inviato la richiesta.
           - file: i dati del file da inviare ai server, rappresentati come un dizionario.
           - titolo: il titolo del file ricevuto dalla richiesta.
@@ -179,7 +178,45 @@ E' stato utilizzato un loop while True per effettuare il monitoraggio del carico
 Il codice estrae l'oggetto `process` che rappresenta il processo corrente, ovvero il processo del server, e il suo l'ID per ricavarne le informazioni sulla memoria utilizzate da esso, inclusa la memoria virtuale.
 Questa quantità in byte viene salvata nella variabile `virtual_memory_used` e consente il calcolo della percentuale di utilizzo della memoria virtuale rispetto alla memoria virtuale totale disponibile nel sistema, `memory_percent`. Questo calcolo fornisce una stima dell'utilizzo della memoria virtuale da parte del processo corrente.
 Se la percentuale di utilizzo della memoria virtuale supera il limite impostato nella variabile `LIMITE_CPU_percentuale`, la variabile `SOVRACCARICO` viene impostata su True, indicando che il server è sovraccarico. Altrimenti, se il limite non viene superato, viene impostato su False.
-  
+
+## Interrogazione e Redirezione dei Client
+
+## Bilanciamento del carico
+
+## Gestione Dinamica dei Server
+
+## Tracciamento delle Richieste
+
+## Elaborazione delle Richieste in modo Ordinato e Sincronizzato
+In questo sistema è stato implementato un sistema di gestione delle richieste in modo sincronizzato e ordinato utilizzando la coda `request_queue`.
+Nel metodo **`ricevo_file_dal_client`** vengono inserite nella coda le richieste in ingresso e , nel metodo **`process_request_queue`** il server gestisce le richieste presenti nella coda in modo sequenziale.
+Il server utilizza un ciclo while per iterare sulla coda delle richieste.
+Dentro il ciclo, il server estrae una richiesta dalla coda delle richieste e la elabora in base alle informazioni contenute nella tupla.
+Il ciclo while continua ad estrarre e gestire le richieste finché la coda delle richieste non è vuota. Una volta che la coda è vuota, il server può uscire dal ciclo e terminare il processo di gestione delle richieste.
+Qualora il sistema prevedesse più client che inviano richieste contemporaneamente al server, queste richieste verrebbero messe in coda in ordine. Il server le elaborerebbe una alla volta, evitando così situazioni in cui le richieste si sovrappongono e causano conflitti o errori.
+Il fatto che le richieste vengono elaborate nell'ordine in cui vengono inserite nella coda, garantisce che vengano gestite in modo sequenziale, seguendo l'ordine in cui sono arrivate, rispettando così la sequenza specifica di operazioni.
+Inoltre, elaborando una richiesta alla volta, la coda consente al server di gestire il carico di lavoro in modo più efficiente, evitando congestioni del sistema.
+
+## Tracciamento dei Trasferimenti File
+1) **Logging nel Load Balancer:**
+
+Nel load balancer, viene utilizzato il modulo di logging di Python per registrare diverse attività.
+Viene registrato un messaggio nel file di log `loadbalancer.log` ogni volta che il load balancer riceve una richiesta da un client e inoltra tale richiesta a uno dei server. Questo avviene nel metodo **`invia_ai_server`** del load balancer.
+
+2) **Messaggi di Notifica:**
+
+    - Quando il client invia un file al load balancer, viene stampato un messaggio di notifica sullo stato del trasferimento su entrambi i lati.
+    - Quando un server riceve un file dal load balancer, viene eseguita una notifica in entrambe le direzioni. Il server invia un messaggio di notifica al load balancer per informarlo che il file è stato ricevuto e salvato con successo.
+Il load balancer riceve il messaggio di notifica dal server e invia una risposta di notifica al client.
+    - Nel caso in cui ci siano errori durante la comunicazione tra client, load balancer e server, vengono stampati messaggi di errore nei rispettivi codici per identificare e gestire le situazioni di errore.
+
+3) **Controllo degli Stati del Server:**
+
+Il load balancer monitora costantemente lo stato di ciascun server. Se un server diventa inattivo o sovraccarico, il load balancer lo segnala nel file di log.
+Il load balancer invia richieste ai server per verificare il loro stato di sovraccarico o disponibilità. Questo viene fatto nel metodo **`monitoraggio_carico_server`**.
+
+
+
 ## Future Implementazioni
 
 ### Modificare il numero di treath:
@@ -206,3 +243,6 @@ Configurando correttamente questi sei thread, il sistema sarà in grado di gesti
 In un sistema distribuito in cui il LoadBalancer svolge un ruolo critico nell'indirizzare le richieste dei client ai server appropriati, è importante disporre di meccanismi adeguati per tenere traccia delle richieste effettuate e dei loro dettagli. Questo consente una gestione più efficace delle operazioni, nonché una risoluzione più efficiente dei problemi o degli errori che potrebbero verificarsi.
 
 Per implementare questa funzionalità, devono essere effettuate le seguenti modifiche al codice:
+
+# Contributi
+Sono benvenuti contributi a questo progetto. Se si riscontrano problemi o si hanno suggerimenti per miglioramenti, è possibile aprire una segnalazione o inviare una richiesta di modifica.

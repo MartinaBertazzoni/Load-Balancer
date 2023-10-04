@@ -171,9 +171,14 @@ Quindi, viene creato il nome del file completo `json_filename` includendo il per
 In seguito, viene effettuata una verifica sull'esistenza o meno della cartella. Se la cartella non esiste, viene creata, garantendo che la cartella sia presente per salvare il file.
 Il contenuto del file da salvare (contenuto) viene scritto nel file appena creato.
 
-* **Invio delle Risposte al LoadBalancer:**
-  
-* **Monitoraggio del Carico dei Server:**
+* **Invio delle Risposte al LoadBalancer:** Il metodo **`invia_risposte_al_loadbalancer`** ha lo scopo di inviare una risposta al load balancer per notificare la ricezione di un file da parte del server.
+Quindi, viene creato un messaggio di conferma che include il titolo del file ricevuto. Il messaggio viene convertito in una sequenza di byte e inviato al load balancer attraverso la socket `richiesta_socket`. Questo permette al load balancer di ricevere la notifica e conferma che il server ha ricevuto correttamente il file.
+
+* **Monitoraggio del Carico dei Server:** La funzione **`monitoraggio_carico_server`** è responsabile del monitoraggio del  carico della CPU del server e, in base all'utilizzo della memoria virtuale, stabilisce se il server è in una situazione di sovraccarico.
+E' stato utilizzato un loop while True per effettuare il monitoraggio del carico della CPU in modo costante e ininterrotto.
+Il codice estrae l'oggetto `process` che rappresenta il processo corrente, ovvero il processo del server e il suo l'ID per ricavarne le informazioni sulla memoria utilizzate dal esso, inclusa la memoria virtuale utilizzata.
+Questa quantità in byte viene salvata nella variabile `virtual_memory_used` e consente il calcolo della percentuale di utilizzo della memoria virtuale rispetto alla memoria virtuale totale disponibile nel sistema. Questo calcolo fornisce una stima dell'utilizzo della memoria virtuale da parte del processo corrente.
+Se la percentuale di utilizzo della memoria virtuale supera il limite impostato nella variabile `LIMITE_CPU_percentuale`, la variabile `SOVRACCARICO` viene impostata su True, indicando che il server è sovraccarico. Altrimenti, se il limite non viene superato, viene impostato su False.
   
 ## Future Implementazioni
 

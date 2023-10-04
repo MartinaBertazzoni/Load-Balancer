@@ -185,17 +185,19 @@ Se la percentuale di utilizzo della memoria virtuale supera il limite impostato 
 
 ## Gestione Dinamica dei Server
 
-## Tracciamento delle Richieste
-
 ## Elaborazione delle Richieste in modo Ordinato e Sincronizzato
-In questo sistema è stato implementato un sistema di gestione delle richieste in modo sincronizzato e ordinato utilizzando la coda `request_queue`.
+In questo codice è stato implementato un sistema di gestione delle richieste in modo sincronizzato e ordinato, utilizzando la coda `request_queue`.
 Nel metodo **`ricevo_file_dal_client`** vengono inserite nella coda le richieste in ingresso e , nel metodo **`process_request_queue`** il server gestisce le richieste presenti nella coda in modo sequenziale.
 Il server utilizza un ciclo while per iterare sulla coda delle richieste.
 Dentro il ciclo, il server estrae una richiesta dalla coda delle richieste e la elabora in base alle informazioni contenute nella tupla.
 Il ciclo while continua ad estrarre e gestire le richieste finché la coda delle richieste non è vuota. Una volta che la coda è vuota, il server può uscire dal ciclo e terminare il processo di gestione delle richieste.
 Qualora il sistema prevedesse più client che inviano richieste contemporaneamente al server, queste richieste verrebbero messe in coda in ordine. Il server le elaborerebbe una alla volta, evitando così situazioni in cui le richieste si sovrappongono e causano conflitti o errori.
 Il fatto che le richieste vengono elaborate nell'ordine in cui vengono inserite nella coda, garantisce che vengano gestite in modo sequenziale, seguendo l'ordine in cui sono arrivate, rispettando così la sequenza specifica di operazioni.
-Inoltre, elaborando una richiesta alla volta, la coda consente al server di gestire il carico di lavoro in modo più efficiente, evitando congestioni del sistema.
+Inoltre, elaborando una richiesta alla volta, il server può gestire il carico di lavoro in modo più efficiente, evitando congestioni del sistema.
+
+## Tracciamento delle Richieste
+La chiave `numero_richiesta` consente di associare ogni richiesta al suo identificatore univoco all'interno del dizionario `file`. 
+Quindi, quando una richiesta viene inserita nella coda delle richieste `request_queue`, è identificata dalla sua chiave numero_richiesta. In questo modo, si può tenere traccia di quale richiesta viene elaborata in un determinato momento, poiché si può recuperare le richieste dal dizionario file utilizzando la chiave come identificatore univoco.
 
 ## Tracciamento dei Trasferimenti File
 1) **Logging nel Load Balancer:**

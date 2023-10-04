@@ -176,8 +176,8 @@ Quindi, viene creato un messaggio di conferma che include il titolo del file ric
 
 * **Monitoraggio del Carico dei Server:** La funzione **`monitoraggio_carico_server`** è responsabile del monitoraggio del  carico della CPU del server e, in base all'utilizzo della memoria virtuale, stabilisce se il server è in una situazione di sovraccarico.
 E' stato utilizzato un loop while True per effettuare il monitoraggio del carico della CPU in modo costante e ininterrotto.
-Il codice estrae l'oggetto `process` che rappresenta il processo corrente, ovvero il processo del server e il suo l'ID per ricavarne le informazioni sulla memoria utilizzate dal esso, inclusa la memoria virtuale utilizzata.
-Questa quantità in byte viene salvata nella variabile `virtual_memory_used` e consente il calcolo della percentuale di utilizzo della memoria virtuale rispetto alla memoria virtuale totale disponibile nel sistema. Questo calcolo fornisce una stima dell'utilizzo della memoria virtuale da parte del processo corrente.
+Il codice estrae l'oggetto `process` che rappresenta il processo corrente, ovvero il processo del server, e il suo l'ID per ricavarne le informazioni sulla memoria utilizzate da esso, inclusa la memoria virtuale.
+Questa quantità in byte viene salvata nella variabile `virtual_memory_used` e consente il calcolo della percentuale di utilizzo della memoria virtuale rispetto alla memoria virtuale totale disponibile nel sistema, `memory_percent`. Questo calcolo fornisce una stima dell'utilizzo della memoria virtuale da parte del processo corrente.
 Se la percentuale di utilizzo della memoria virtuale supera il limite impostato nella variabile `LIMITE_CPU_percentuale`, la variabile `SOVRACCARICO` viene impostata su True, indicando che il server è sovraccarico. Altrimenti, se il limite non viene superato, viene impostato su False.
   
 ## Future Implementazioni

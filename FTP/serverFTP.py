@@ -6,8 +6,10 @@ import time
 import psutil
 
 class Server(object):
-
     def __init__(self):
+        """
+        Costruttore della classe Server
+        """
         self.ip = "127.0.0.1"
         self.port = 5001
         self.server_socket = None

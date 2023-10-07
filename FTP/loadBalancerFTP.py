@@ -14,7 +14,6 @@ class LoadBalancer(object):
         self.balancer_socket = None
         self.port = 60002 # porta in cui si mette in ascolto il server
         self.ip = '127.0.0.1'
-        self.clients = []
         self.nomi_file_ricevuti = []
         self.file_ricevuti = []
         self.filepath = None
@@ -22,14 +21,12 @@ class LoadBalancer(object):
         self.port_server = [5001, 5002, 5003]
         self.current_server_index = 0
         self.request_queue = Queue()  # Coda delle richieste in arrivo
-    
         self.server_flags_connection = [False] * len(self.servers)
         self.server_sovracarichi=[False] * len(self.servers)
         self.numero_della_richiesta=0
         self.monitoraggio_stato_server = threading.Thread(target=self.monitoraggio_stato_server)
         self.monitoraggio_stato_server.daemon = True
         self.monitoraggio_stato_server.start()
-
         # registro attività loadBalancer e creazione del file loadbalancer.log
         self.log_file = 'loadbalancer.log'
         logging.basicConfig(filename=self.log_file, level=logging.INFO, format='%(levelname)s - %(message)s')
@@ -65,18 +62,16 @@ class LoadBalancer(object):
         :return: None
         """
         try:
-            while True:
-                client_socket, client_ip = self.balancer_socket.accept() # Accetta le connessioni in entrata
-                self.clients.append(self.balancer_socket)
-                print("Connessione accettata da {}:{}".format(client_ip[0], client_ip[1]))
-                # attivo ricezione file dal client
-                ricezione_file = threading.Thread(target=self.ricevo_file_dal_client, args=(client_socket,))
-                ricezione_file.start()
-                # il load balancer invia i file contenuti nella coda ai server
-                threading.Thread(target=self.process_request_queue).start()
+            client_socket, client_ip = self.balancer_socket.accept() # Accetta le connessioni in entrata
+            print("Connessione accettata da {}:{}".format(client_ip[0], client_ip[1]))
+            # attivo ricezione file dal client
+            ricezione_file = threading.Thread(target=self.ricevo_file_dal_client, args=(client_socket,))
+            ricezione_file.start()
+            # il load balancer invia i file contenuti nella coda ai server
+            invio_file_ai_server = threading.Thread(target=self.gestisci_coda_richieste)
+            invio_file_ai_server.start()
         except Exception as e:
             print("Errore durante la comunicazione con il client:", e)
-
 
 
     def ricevo_file_dal_client(self, client_socket):
@@ -90,17 +85,15 @@ class LoadBalancer(object):
         try:
             while True:
                 file_ricevuto = client_socket.recv(4096).decode("utf-8")
-                if not file_ricevuto:
-                    break
-                file=json.loads(file_ricevuto) # converto il file in un dizionario
+                file = json.loads(file_ricevuto) # converto il file in un dizionario
                 titolo = file.get("titolo", "")
                 self.nomi_file_ricevuti.append(titolo)
-                print("Ho ricevuto il file",titolo)
+                print("Ho ricevuto il file", titolo)
                 self.request_queue.put((client_socket, file, titolo)) # inserisco la richiesta nella coda
         except Exception as e:
             print("Errore durante la comunicazione con il client:", e)
 
-    def process_request_queue(self):
+    def gestisci_coda_richieste(self):
         """
         Metodo che estrae il primo elemento dalla coda delle richieste e lo invia al server
 
@@ -110,7 +103,6 @@ class LoadBalancer(object):
             client_socket, file, titolo = self.request_queue.get()  # estraggo il primo elemento dalla coda
             time.sleep(0.2)
             self.invia_ai_server(client_socket, file, titolo)
-
 
 
     def invia_ai_server(self, client_socket, file , titolo):
@@ -123,11 +115,10 @@ class LoadBalancer(object):
         try:
             server_address, server_port = self.round_robin()
             print("Server scelto: ", server_port)
-            # funzione che mette il log di richiesta del Client inoltrata allo specifico Server nel file loadbalancer.log
+            # aggiorno il file di log loadbalancer.log
             logging.info(
                 f'Inoltro richiesta del Client {client_socket.getpeername()} al server {server_address}:{server_port}')
             self.invia_al_server_scelto(server_address, server_port, file, titolo)  # invio il file al server scelto dal round robin
-
         except socket.error as error:
             print(f"Errore di comunicazione con il server: {error}")
             sys.exit(1)
@@ -163,9 +154,7 @@ class LoadBalancer(object):
 
         :return: None
         """
-
         while True:
-            
             for i, server_address in enumerate(self.servers):
                 # creo una connessione con il server per verificare il suo stato di connessione
                 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -217,35 +206,14 @@ class LoadBalancer(object):
             # Scegli il prossimo server nell'ordine circolare
             server_address = self.servers[self.current_server_index]
             server_port = self.port_server[self.current_server_index]
-        
             # Verifica che il server selezionato è attivo (flag True) e non sovraccarico (flag False); in caso contrario, cambia server
             if self.server_flags_connection[self.current_server_index] and self.server_sovracarichi[self.current_server_index]==False:
                 break
             # Se il server non è attivo, passa al successivo nell'ordine
             self.current_server_index = (self.current_server_index + 1) % len(self.servers)
-
         # Passa al successivo nell'ordine per la prossima richiesta
         self.current_server_index = (self.current_server_index + 1) % len(self.servers)
-
         return server_address, server_port  # Restituisci l'indirizzo del server attivo
-
-
-    def ricevi_risposta_server(self, server_socket, client_socket):
-        """
-        Metodo che riceve le risposte di avvenuta ricezione del server
-
-        :param server_socket: socket del server
-        :param client_socket: socket del client
-        :return: None
-        """
-        try:
-            message_from_server = server_socket.recv(1024).decode("utf-8")
-            print(message_from_server)
-            # rispondo al client
-            client_socket.send(message_from_server.encode("utf-8"))
-        except socket.error as error:
-            print(f"Impossibile ricevere dati dal server: {error}")
-            sys.exit(1)
 
 
 if __name__ == "__main__":

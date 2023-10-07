@@ -5,7 +5,6 @@ import os
 import time
 import psutil
 
-
 class Server(object):
 
     def __init__(self):
@@ -14,8 +13,8 @@ class Server(object):
         self.server_socket = None
         self.active_requests = []
         self.SOVRACCARICO = False
-        self.directory_name = "json_files_1"   # directory di salvataggio dei file
-        self.LIMITE_CPU_percentuale = None    # valore che si aggiorna in base alla percentuale di cpu calcolata all'avvio
+        self.directory_name = "json_files_1"  # directory di salvataggio dei file
+        self.LIMITE_CPU_percentuale = None  # valore che si aggiorna in base alla percentuale di cpu calcolata all'avvio
         monitoraggio_status = threading.Thread(target=self.monitoraggio_carico_server)
         monitoraggio_status.daemon = True
         monitoraggio_status.start()
@@ -24,10 +23,8 @@ class Server(object):
         """
         Metodo che richiama i metodi per avviare il server; in particolare, svuota la directory di salvataggio dei file,
         crea la socket del server, e connette il server al loadbalancer
-
         :return: None
         """
-
         self.svuota_directory_json_files()
         self.creo_socket_server()
         self.connetto_il_loadbalancer()
@@ -35,14 +32,10 @@ class Server(object):
     def creo_socket_server(self):
         """
         Metodo che crea la socket del server e la mette in ascolto
-
         :return: None
         """
-        # creo una socket server
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # collego la socket al server
         self.server_socket.bind((self.ip, self.port))
-        # metto in ascolto il server
         self.server_socket.listen()
         print(f"Server in ascolto su {self.ip}:{self.port}")
 
@@ -59,8 +52,8 @@ class Server(object):
                     # Accetta le connessioni in entrata; richiesta socket indica che è la socket delle richieste
                     richiesta_socket, richiesta_ip = self.server_socket.accept()
                     self.active_requests.append(richiesta_socket)
-                    # avvio un thread per ogni richiesta
-                    ricezione_dati = threading.Thread(target=self.ricevo_e_elaboro_file_dal_loadbalancer, args=(richiesta_socket,))
+                    # avvio un thread per gestire ogni richiesta ricevuta dal loadbalancer
+                    ricezione_dati = threading.Thread(target=self.gestione_richiesta, args=(richiesta_socket,))
                     ricezione_dati.start()
                 except socket.timeout:
                     continue
@@ -69,7 +62,7 @@ class Server(object):
         except Exception as e:
             print("Errore durante la connessione con il loadbalancer:", e)
 
-    def ricevo_e_elaboro_file_dal_loadbalancer(self, richiesta_socket):
+    def gestione_richiesta(self, richiesta_socket):
         """
         Metodo che prende in ingresso la socket della richiesta corrente, riceve e legge il file, chiama il metodo
         per contare le lettere "a" all'interno del testo del file, e infine lo salva
@@ -89,7 +82,7 @@ class Server(object):
                 self.conta_a(contenuto)
                 self.salvo_file_ricevuto(titolo, contenuto, numero_richiesta)
                 print(f"File {titolo} salvato correttamente ")
-            else:
+            else: # è una richiesta di stato
                 status = bytes([self.SOVRACCARICO])
                 richiesta_socket.send(status)
         except Exception as e:
@@ -133,7 +126,6 @@ class Server(object):
         :param contenuto: contenuto del file
         :return: None
         """
-
         # Genera un nome di file univoco utilizzando il numero della richiesta
         json_filename = f"{self.directory_name}/{numero_richiesta}_{titolo}"
         # Verifica se la directory "json_files" esiste, altrimenti creala
@@ -152,7 +144,6 @@ class Server(object):
         Metodo che svuota il contenuto della directory "json_files_1" ogni volta che si riavvia il codice
         :return: None
         """
-
         try:
             # Crea la cartella se non esiste
             if not os.path.exists(self.directory_name):
@@ -171,11 +162,9 @@ class Server(object):
         supera il limite imposto, la flag SOVRACCARICO diventa True
         :return: None
         """
-
         # ottengo la percentuale di cpu utilizzata dal processo in fase di avvio
         starting_memory_percent = self.ottieni_cpu_utilizzata()
         self.LIMITE_CPU_percentuale = starting_memory_percent + 0.025
-
         while True:
             memory_percent = self.ottieni_cpu_utilizzata()
             # se il carico della cpu è maggiore del limite, il server è sovraccarico
@@ -190,9 +179,9 @@ class Server(object):
         :return:
         memory_percent
         """
-        process = psutil.Process(os.getpid())  # Get the current process (your script)
+        process = psutil.Process(os.getpid())  # considero il processo corrente (script attuale)
         memory_info = process.memory_info()
-        # Percentuale della memoria totale del sistema utilizzata dal processo
+        # percentuale della memoria totale del sistema utilizzata dal processo
         memory_percent = (memory_info.vms / psutil.virtual_memory().total) * 100
         return memory_percent
 

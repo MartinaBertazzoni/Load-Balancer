@@ -189,4 +189,3 @@ class Server(object):
 if __name__ == "__main__":
     server = Server()
     server.avvio_server()
-

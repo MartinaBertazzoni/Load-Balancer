@@ -8,6 +8,9 @@ import time
 
 class LoadBalancer(object):
     def __init__(self):
+        """
+        Costruttore della classe LoadBalancer
+        """
         self.balancer_socket = None
         self.port = 60002 # porta in cui si mette in ascolto il server
         self.ip = '127.0.0.1'
@@ -124,8 +127,7 @@ class LoadBalancer(object):
             logging.info(
                 f'Inoltro richiesta del Client {client_socket.getpeername()} al server {server_address}:{server_port}')
             self.invia_al_server_scelto(server_address, server_port, file, titolo)  # invio il file al server scelto dal round robin
-            # ricevo risposta dal server (da controllare per farla funzionare)
-            #self.ricevi_risposta_server(server_socket, client_socket)
+
         except socket.error as error:
             print(f"Errore di comunicazione con il server: {error}")
             sys.exit(1)

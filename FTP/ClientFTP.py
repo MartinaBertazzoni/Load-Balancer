@@ -8,6 +8,9 @@ import json
 
 class Client(object):
     def __init__(self):
+        """
+        Costruttore della classe Client
+        """
         self.loadBalancer_ip = "127.0.0.1"
         self.loadBalancer_port = "60004"
         self.filepath = None
@@ -18,7 +21,7 @@ class Client(object):
 
     def avvio_client(self):
         """
-        Metodo che avvia il client e i thread di invio file e ricezione delle risposte
+        Metodo che avvia il client e i thread di invio file
         :return: None
 
         """
@@ -119,6 +122,7 @@ class Client(object):
             print(f"Errore di comunicazione con il loadbalancer: {error}")
             sys.exit(1)
 
+
     def invia_file_scelto(self, filepath):
         """
         Metodo che svolge operazioni sul file scelto e lo invia al load balancer
@@ -134,7 +138,6 @@ class Client(object):
         json_data_to_send = json.dumps(json_data)  # converto in una stringa per poterlo mandare attraverso la socket
         self.client_socket.send(json_data_to_send.encode())  # invio il file
         time.sleep(0.3)
-        print(f"File JSON inoltrato al load balancer: \n", filepath)
         self.counter_richieste += 1
 
     def ricevi_dati_dal_loadbalancer(self):

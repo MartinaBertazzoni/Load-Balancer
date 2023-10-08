@@ -51,7 +51,10 @@ class LoadBalancer(object):
         # Binding della socket all'host e alla porta
         self.balancer_socket.bind((self.ip, self.port))
         self.balancer_socket.listen()
-        print("Server di load balancing in ascolto su {}:{}".format(self.ip, self.port))
+        message_0 = "Server di load balancing in ascolto su {}:{}".format(self.ip, self.port)   
+        print(message_0)
+        # Registra il messaggio nel file di log
+        logging.info(message_0)  
 
 
     def connetto_il_client(self):
@@ -63,7 +66,10 @@ class LoadBalancer(object):
         """
         try:
             client_socket, client_ip = self.balancer_socket.accept() # Accetta le connessioni in entrata
-            print("Connessione accettata da {}:{}".format(client_ip[0], client_ip[1]))
+            message_1 = "Connessione accettata da {}:{}".format(client_ip[0], client_ip[1])
+            print(message_1)
+            # Registra il messaggio nel file di log
+            logging.info(message_1) 
             # attivo ricezione file dal client
             ricezione_file = threading.Thread(target=self.ricevo_file_dal_client, args=(client_socket,))
             ricezione_file.start()
@@ -71,7 +77,10 @@ class LoadBalancer(object):
             invio_file_ai_server = threading.Thread(target=self.gestisci_coda_richieste)
             invio_file_ai_server.start()
         except Exception as e:
-            print("Errore durante la comunicazione con il client:", e)
+            error_message_0 = "Errore durante la comunicazione con il client: {}".format(e)
+            print(error_message_0)
+            # Registra il messaggio di errore nel file di log
+            logging.exception(error_message_0)  
 
 
     def ricevo_file_dal_client(self, client_socket):
@@ -88,10 +97,17 @@ class LoadBalancer(object):
                 file = json.loads(file_ricevuto) # converto il file in un dizionario
                 titolo = file.get("titolo", "")
                 self.nomi_file_ricevuti.append(titolo)
-                print("Ho ricevuto il file", titolo)
+                message_2 = "Il loadBalancer ha ricevuto dal client il file: {}".format(titolo) 
+                print(message_2)
+                # Registra il messaggio nel file di log
+                logging.info(message_2)
                 self.request_queue.put((client_socket, file, titolo)) # inserisco la richiesta nella coda
         except Exception as e:
-            print("Errore durante la comunicazione con il client:", e)
+            error_message_1 = "Errore durante la comunicazione con il client: {}".format(e)
+            print(error_message_1)
+            # Registra il messaggio di errore nel file di log
+            logging.exception(error_message_1)  
+
 
     def gestisci_coda_richieste(self):
         """
@@ -114,13 +130,19 @@ class LoadBalancer(object):
         """
         try:
             server_address, server_port = self.round_robin()
-            print("Server scelto: ", server_port)
-            # aggiorno il file di log loadbalancer.log
-            logging.info(
-                f'Inoltro richiesta del Client {client_socket.getpeername()} al server {server_address}:{server_port}')
+            message_3 = "Server scelto: {}".format(server_port)
+            print(message_3)
+            # Registra il messaggio nel file di log
+            logging.info(message_3)
+            # Aggiorno il file di log loadbalancer.log
+            message_4 = f'Inoltro richiesta del Client {client_socket.getpeername()} al Server {server_address}:{server_port}'
+            logging.info(message_4)
             self.invia_al_server_scelto(server_address, server_port, file, titolo)  # invio il file al server scelto dal round robin
         except socket.error as error:
-            print(f"Errore di comunicazione con il server: {error}")
+            error_message_2 = "Errore durante la comunicazione con il server: {}".format(error)
+            print(error_message_2)
+            # Registra il messaggio di errore nel file di log
+            logging.exception(error_message_2)  
             sys.exit(1)
 
     def invia_al_server_scelto(self, server_address, server_port, file, titolo):
@@ -137,11 +159,15 @@ class LoadBalancer(object):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # connetto il load balancer al server scelto
         server_socket.connect((server_address, server_port))
         self.numero_della_richiesta += 1
-        print("Numero della richiesta elaborata: ", self.numero_della_richiesta)
+        message_5 = "Numero della richiesta elaborata: {}".format(self.numero_della_richiesta)
+        print(message_5)
+        # Registra il messaggio nel file di log
+        logging.info(message_5)
         file['numero_richiesta'] = self.numero_della_richiesta
-        print(
-            f"Ho inviato il file al server{server_port} status:{self.server_sovracarichi[self.port_server.index(server_port)]} ",
-            titolo)
+        message_6 = f"Ho inviato il file {titolo} al server {server_port}, status:{self.server_sovracarichi[self.port_server.index(server_port)]} "
+        print(message_6)
+        # Registra il messaggio nel file di log
+        logging.info(message_6)
         file_da_inviare = json.dumps(file)
         server_socket.send(file_da_inviare.encode("utf-8"))
         server_socket.close()

@@ -252,6 +252,9 @@ Prevediamo, quinid, di implementare in futuro quanto segue:
 
 Questi future implementazioni renderanno il nostro sistema più robusto, efficiente e adattabile alle esigenze dinamiche dei client e dei server.
 
+### Sicurezza:
+
+
 ### Sistema di tracciamento delle richieste: Memorizzazione delle Richieste e Accesso da Parte del Server
 
 In un sistema distribuito in cui il LoadBalancer svolge un ruolo critico nell'indirizzare le richieste dei client ai server appropriati, è importante disporre di meccanismi adeguati per tenere traccia delle richieste effettuate e dei loro dettagli. Questo consente una gestione più efficace delle operazioni, nonché una risoluzione più efficiente dei problemi o degli errori che potrebbero verificarsi.

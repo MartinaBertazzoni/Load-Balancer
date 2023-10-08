@@ -241,6 +241,17 @@ Per garantire un funzionamento efficiente del sistema in scenari con un numero c
 
 Configurando correttamente questi sei thread, il sistema sarà in grado di gestire simultaneamente numerose richieste dai client in modo efficiente e scalabile, garantendo prestazioni ottimali anche in situazioni di carico elevato. 
 
+### Gestione Dinamica dei Thread:
+Uno dei punti chiave per il miglioramento del nostro sistema client-server con load balancer è la gestione dinamica dei thread. Attualmente, il sistema utilizza thread, ma manca un meccanismo per la chiusura e la gestione dei thread in modo dinamico.
+
+Prevediamo, quinid, di implementare in futuro quanto segue:
+
+- Chiusura Sicura dei Thread: Attualmente, i thread vengono creati al momento dell'avvio del sistema e non vengono chiusi in modo esplicito. In futuro, pianifichiamo di implementare una gestione sicura della chiusura dei thread quando non sono più necessari.
+
+- Gestione Dinamica dei Thread: Prevediamo di implementare un sistema di gestione dei thread che permetta l'apertura e la chiusura dinamica in risposta alla domanda effettiva. Questo garantirà un utilizzo efficiente delle risorse di sistema e consentirà al sistema di adattarsi alle variazioni del carico di lavoro in tempo reale.
+
+Questi future implementazioni renderanno il nostro sistema più robusto, efficiente e adattabile alle esigenze dinamiche dei client e dei server.
+
 ### Sistema di tracciamento delle richieste: Memorizzazione delle Richieste e Accesso da Parte del Server
 
 In un sistema distribuito in cui il LoadBalancer svolge un ruolo critico nell'indirizzare le richieste dei client ai server appropriati, è importante disporre di meccanismi adeguati per tenere traccia delle richieste effettuate e dei loro dettagli. Questo consente una gestione più efficace delle operazioni, nonché una risoluzione più efficiente dei problemi o degli errori che potrebbero verificarsi.

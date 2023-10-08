@@ -216,11 +216,8 @@ Il load balancer riceve il messaggio di notifica dal server e invia una risposta
     - Nel caso in cui ci siano errori durante la comunicazione tra client, load balancer e server, vengono stampati messaggi di errore nei rispettivi codici per identificare e gestire le situazioni di errore.
 
 3) **Controllo degli Stati del Server:**
-
 Il load balancer monitora costantemente lo stato di ciascun server. Se un server diventa inattivo o sovraccarico, il load balancer lo segnala nel file di log.
 Il load balancer invia richieste ai server per verificare il loro stato di sovraccarico o disponibilità. Questo viene fatto nel metodo **`monitoraggio_carico_server`**.
-
-
 
 ## Future Implementazioni
 

@@ -205,22 +205,20 @@ Quindi, quando una richiesta viene inserita nella coda delle richieste `request_
 ## Tracciamento dei Trasferimenti File
 1) **Logging nel Load Balancer:**
 
-Nel load balancer, viene utilizzato il modulo di logging di Python per registrare diverse attività.
+   Nel load balancer, viene utilizzato il modulo di logging di Python per registrare diverse attività.
 Viene registrato un messaggio nel file di log `loadbalancer.log` ogni volta che il load balancer riceve una richiesta da un client e inoltra tale richiesta a uno dei server. Questo avviene nel metodo **`invia_ai_server`** del load balancer.
 
-2) **Messaggi di Notifica:**
+3) **Messaggi di Notifica:**
 
     - Quando il client invia un file al load balancer, viene stampato un messaggio di notifica sullo stato del trasferimento su entrambi i lati.
     - Quando un server riceve un file dal load balancer, viene eseguita una notifica in entrambe le direzioni. Il server invia un messaggio di notifica al load balancer per informarlo che il file è stato ricevuto e salvato con successo.
 Il load balancer riceve il messaggio di notifica dal server e invia una risposta di notifica al client.
     - Nel caso in cui ci siano errori durante la comunicazione tra client, load balancer e server, vengono stampati messaggi di errore nei rispettivi codici per identificare e gestire le situazioni di errore.
 
-3) **Controllo degli Stati del Server:**
-
-Il load balancer monitora costantemente lo stato di ciascun server. Se un server diventa inattivo o sovraccarico, il load balancer lo segnala nel file di log.
+4) **Controllo degli Stati del Server:**
+   
+   Il load balancer monitora costantemente lo stato di ciascun server. Se un server diventa inattivo o sovraccarico, il load balancer lo segnala nel file di log.
 Il load balancer invia richieste ai server per verificare il loro stato di sovraccarico o disponibilità. Questo viene fatto nel metodo **`monitoraggio_carico_server`**.
-
-
 
 ## Future Implementazioni
 

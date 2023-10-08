@@ -29,7 +29,7 @@ class LoadBalancer(object):
         self.monitoraggio_stato_server.start()
         # registro attività loadBalancer e creazione del file loadbalancer.log
         self.log_file = 'loadbalancer.log'
-        logging.basicConfig(filename=self.log_file, level=logging.INFO, format='%(levelname)s - %(message)s')
+        logging.basicConfig(filename=self.log_file, level=logging.INFO, format='%(levelname)s - %(message)s', filemode='w')
 
 
     def avvio_loadbalancer(self):

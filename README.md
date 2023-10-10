@@ -186,7 +186,7 @@ Il contenuto del file da salvare (contenuto) viene scritto nel file appena creat
 
 * **Monitoraggio del Carico dei Server:** La funzione **`monitoraggio_carico_server`** è responsabile del monitoraggio del  carico della CPU del server e, in base all'utilizzo della memoria virtuale, stabilisce se il server è in una situazione di sovraccarico.
 Inizialmente viene estratto il carico di CPU utilizzata dal server all'avvio del programma, in modo da determinare la quantità di memoria utilizzata dal processo quando non viene processata nessuna richiesta. Questa verifica ci permette di rendere il programma scalabile in ogni ambiente, poichè il valore della CPU utilizzata può variare in base alle caratteristiche software e hardware del calcolatore su cui gira. Successivamente, viene impostato il limite percentuale di CPU utilizzabile dal programma, calcolato come lo 0.025 in più rispetto alla memoria utilizzata all'avvio.
-Dopo questo calcolo iniziale, che viene eseguito solo la prima volta all'avvio del programma, il metodo avvia loop while True per effettuare il monitoraggio del carico della CPU in modo costante e ininterrotto. Per fare ciò, viene richiamato il metodo `ottieni_cpu_utilizzata`, che estrae l'oggetto `process` che rappresenta il processo corrente, le informazioni sulla memoria, e calcola ogni volta la percentuale di utilizzo della memoria virtuale rispetto alla memoria virtuale totale disponibile nel sistema, `memory_percent`.
+Dopo questo calcolo iniziale, che viene eseguito solo la prima volta all'avvio del programma, il metodo avvia loop while True per effettuare il monitoraggio del carico della CPU in modo costante e ininterrotto. Per fare ciò, viene richiamato il metodo **`ottieni_cpu_utilizzata`**, che estrae l'oggetto `process` che rappresenta il processo corrente, le informazioni sulla memoria, e calcola ogni volta la percentuale di utilizzo della memoria virtuale rispetto alla memoria virtuale totale disponibile nel sistema, `memory_percent`.
 Questo calcolo fornisce una stima dell'utilizzo della memoria virtuale da parte del processo corrente.
 Se la percentuale di utilizzo della memoria virtuale supera il limite impostato nella variabile `LIMITE_CPU_percentuale`, la variabile `flag_sovraccarico` viene impostata su True, indicando che il server è sovraccarico. Altrimenti, se il limite non viene superato, viene impostato su False.
 
@@ -203,7 +203,7 @@ Il server utilizza un ciclo while per iterare sulla coda delle richieste.
 Dentro il ciclo, il server estrae una richiesta dalla coda delle richieste e la elabora in base alle informazioni contenute nella tupla.
 Il ciclo while continua ad estrarre e gestire le richieste finché la coda delle richieste non è vuota. Una volta che la coda è vuota, il server può uscire dal ciclo e terminare il processo di gestione delle richieste.
 Qualora il sistema prevedesse più client che inviano richieste contemporaneamente al server, queste richieste verrebbero messe in coda in ordine. Il server le elaborerebbe una alla volta, evitando così situazioni in cui le richieste si sovrappongono e causano conflitti o errori.
-Il fatto che le richieste vengono elaborate nell'ordine in cui vengono inserite nella coda, garantisce che vengano gestite in modo sequenziale, seguendo l'ordine in cui sono arrivate, rispettando così la sequenza specifica di operazioni.
+Il fatto che le richieste vengano elaborate nell'ordine in cui vengono inserite nella coda, garantisce che vengano gestite in modo sequenziale, seguendo l'ordine in cui sono arrivate, rispettando così la sequenza specifica di operazioni.
 Inoltre, elaborando una richiesta alla volta, il server può gestire il carico di lavoro in modo più efficiente, evitando congestioni del sistema.
 
 ## Tracciamento delle Richieste
@@ -218,9 +218,8 @@ Viene registrato un messaggio nel file di log `loadbalancer.log` ogni volta che 
 
 3) **Messaggi di Notifica:**
 
-    - Quando il client invia un file al load balancer, viene stampato un messaggio di notifica sullo stato del trasferimento su entrambi i lati.
-    - Quando un server riceve un file dal load balancer, viene eseguita una notifica in entrambe le direzioni. Il server invia un messaggio di notifica al load balancer per informarlo che il file è stato ricevuto e salvato con successo.
-Il load balancer riceve il messaggio di notifica dal server e invia una risposta di notifica al client.
+    - Quando il client invia un file al load balancer, viene stampato un messaggio di notifica sullo stato del trasferimento nel loadbalancer.
+    - Quando un server riceve un file dal load balancer, viene eseguita una notifica di avvenuto salvataggio del file. 
     - Nel caso in cui ci siano errori durante la comunicazione tra client, load balancer e server, vengono stampati messaggi di errore nei rispettivi codici per identificare e gestire le situazioni di errore.
 
 4) **Controllo degli Stati del Server:**
@@ -252,7 +251,7 @@ Configurando correttamente questi sei thread, il sistema sarà in grado di gesti
 ### Gestione Dinamica dei Thread:
 Uno dei punti chiave per il miglioramento del nostro sistema client-server con load balancer è la gestione dinamica dei thread. Attualmente, il sistema utilizza thread, ma manca un meccanismo per la chiusura e la gestione dei thread in modo dinamico.
 
-Prevediamo, quinid, di implementare in futuro quanto segue:
+Prevediamo, quindi, di implementare in futuro quanto segue:
 
 - Chiusura Sicura dei Thread: Attualmente, i thread vengono creati al momento dell'avvio del sistema e non vengono chiusi in modo esplicito. In futuro, pianifichiamo di implementare una gestione sicura della chiusura dei thread quando non sono più necessari.
 

@@ -229,6 +229,12 @@ Il load balancer invia richieste ai server per verificare il loro stato di sovra
 
 ## Future Implementazioni
 
+### Misure di sicurezza:
+In futuro, è previsto di implementare ulteriori misure di sicurezza, tra cui:
+
+1) **Registrazione e doppia autenticazione per i client:** I client dovranno registrarsi al sistema fornendo un username, una password e un token di autenticazione. Il token di autenticazione sarà generato dal load balancer e dovrà essere utilizzato dal client per accedere al sistema.
+2) **Sistema a doppia crittografia:** Le comunicazioni tra il client e il load balancer saranno criptate utilizzando il protocollo TLS. Le comunicazioni tra il load balancer e i server saranno criptate utilizzando un protocollo di crittografia più forte, come il protocollo AES.
+
 ### Modificare il numero di thread:
 Per garantire un funzionamento efficiente del sistema in scenari con un numero crescente di client, è fondamentale configurare un numero adeguato di thread per gestire le diverse attività. Quando il sistema è soggetto a un carico elevato, si consiglia di allocare sei thread distinti, ciascuno dedicato a specifiche responsabilità:
 
@@ -258,8 +264,6 @@ Prevediamo, quindi, di implementare in futuro quanto segue:
 - Gestione Dinamica dei Thread: Prevediamo di implementare un sistema di gestione dei thread che permetta l'apertura e la chiusura dinamica in risposta alla domanda effettiva. Questo garantirà un utilizzo efficiente delle risorse di sistema e consentirà al sistema di adattarsi alle variazioni del carico di lavoro in tempo reale.
 
 Questi future implementazioni renderanno il nostro sistema più robusto, efficiente e adattabile alle esigenze dinamiche dei client e dei server.
-
-### Sicurezza:
 
 
 ### Sistema di tracciamento delle richieste: Memorizzazione delle Richieste e Accesso da Parte del Server

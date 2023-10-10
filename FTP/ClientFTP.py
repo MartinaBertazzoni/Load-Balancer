@@ -11,10 +11,10 @@ class Client(object):
         """
         Costruttore della classe Client
         """
+        self.client_socket = None
         self.loadBalancer_ip = "127.0.0.1"
         self.loadBalancer_port = "60004"
         self.filepath = None
-        self.client_socket = None
         self.file_da_inviare = []
         self.counter_richieste = 0
 

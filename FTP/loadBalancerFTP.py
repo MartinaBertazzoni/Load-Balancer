@@ -15,21 +15,19 @@ class LoadBalancer(object):
         self.port = 60002 # porta in cui si mette in ascolto il server
         self.ip = '127.0.0.1'
         self.nomi_file_ricevuti = []
-        self.file_ricevuti = []
-        self.filepath = None
         self.servers = ["127.0.0.1", "127.0.0.1", "127.0.0.1"]
         self.port_server = [5001, 5002, 5003]
         self.current_server_index = 0
         self.request_queue = Queue()  # Coda delle richieste in arrivo
         self.server_flags_connection = [False] * len(self.servers)
-        self.server_sovracarichi=[False] * len(self.servers)
+        self.server_sovraccarichi=[False] * len(self.servers)
         self.numero_della_richiesta=0
-        self.monitoraggio_stato_server = threading.Thread(target=self.monitoraggio_stato_server)
-        self.monitoraggio_stato_server.daemon = True
-        self.monitoraggio_stato_server.start()
         # registro attività loadBalancer e creazione del file loadbalancer.log
         self.log_file = 'loadbalancer.log'
         logging.basicConfig(filename=self.log_file, level=logging.INFO, format='%(levelname)s - %(message)s', filemode='w')
+        self.monitoraggio_stato_server = threading.Thread(target=self.monitoraggio_stato_server)
+        self.monitoraggio_stato_server.daemon = True
+        self.monitoraggio_stato_server.start()
 
 
     def avvio_loadbalancer(self):
@@ -164,7 +162,7 @@ class LoadBalancer(object):
         # Registra il messaggio nel file di log
         logging.info(message_5)
         file['numero_richiesta'] = self.numero_della_richiesta
-        message_6 = f"Ho inviato il file {titolo} al server {server_port}, status:{self.server_sovracarichi[self.port_server.index(server_port)]} "
+        message_6 = f"Ho inviato il file {titolo} al server {server_port}, status:{self.server_sovraccarichi[self.port_server.index(server_port)]} "
         print(message_6)
         # Registra il messaggio nel file di log
         logging.info(message_6)
@@ -214,7 +212,7 @@ class LoadBalancer(object):
         status = server_socket.recv(1)
         # lo converto da byte a valore booleano
         status = bool(int.from_bytes(status, byteorder='big'))
-        self.server_sovracarichi[i] = status
+        self.server_sovraccarichi[i] = status
         server_socket.close()
 
 
@@ -233,7 +231,7 @@ class LoadBalancer(object):
             server_address = self.servers[self.current_server_index]
             server_port = self.port_server[self.current_server_index]
             # Verifica che il server selezionato è attivo (flag True) e non sovraccarico (flag False); in caso contrario, cambia server
-            if self.server_flags_connection[self.current_server_index] and self.server_sovracarichi[self.current_server_index]==False:
+            if self.server_flags_connection[self.current_server_index] and self.server_sovraccarichi[self.current_server_index]==False:
                 break
             # Se il server non è attivo, passa al successivo nell'ordine
             self.current_server_index = (self.current_server_index + 1) % len(self.servers)

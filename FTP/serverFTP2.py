@@ -6,16 +6,15 @@ import time
 import psutil
 
 class Server(object):
-
     def __init__(self):
         """
         Costruttore della classe Server
         """
+        self.server_socket = None
         self.ip = "127.0.0.1"
         self.port = 5002
-        self.server_socket = None
         self.active_requests = []
-        self.SOVRACCARICO = False
+        self.flag_sovraccarico = False
         self.directory_name = "json_files_2"  # directory di salvataggio dei file
         self.LIMITE_CPU_percentuale = None  # valore che si aggiorna in base alla percentuale di cpu calcolata all'avvio
         monitoraggio_status = threading.Thread(target=self.monitoraggio_carico_server)
@@ -86,7 +85,7 @@ class Server(object):
                 self.salvo_file_ricevuto(titolo, contenuto, numero_richiesta)
                 print(f"File {titolo} salvato correttamente ")
             else: # è una richiesta di stato
-                status = bytes([self.SOVRACCARICO])
+                status = bytes([self.flag_sovraccarico])
                 richiesta_socket.send(status)
         except Exception as e:
             print("Errore durante la comunicazione con il loadbalancer:", e)
@@ -172,9 +171,9 @@ class Server(object):
             memory_percent = self.ottieni_cpu_utilizzata()
             # se il carico della cpu è maggiore del limite, il server è sovraccarico
             if memory_percent > self.LIMITE_CPU_percentuale:
-                self.SOVRACCARICO = True
+                self.flag_sovraccarico = True
             else:
-                self.SOVRACCARICO = False
+                self.flag_sovraccarico = False
 
     def ottieni_cpu_utilizzata(self):
         """
@@ -192,4 +191,3 @@ class Server(object):
 if __name__ == "__main__":
     server = Server()
     server.avvio_server()
-

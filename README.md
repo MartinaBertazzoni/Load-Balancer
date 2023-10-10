@@ -3,28 +3,34 @@
 Questo repository contiene un'implementazione in Python di un sistema client-server intermediato da un sistema di load balacing. Il load balancer sfrutta l'algoritmo di bilanciamento del carico Weighted Round Robin, che assegna in maniera sequenziale le richieste ai server ad esso collegati che risultano attivi e non in sovraccarico.
 
 ## Introduzione
-Questo programma implementa un sistema di File Transfer Protocol (FTP) client-server intermediato da un server di load balacing utilizzando Python. Per fare ciò utilizza tre classi: client, loadBalancer e server. Il client effettua delle richieste di invio file al load balancer, il quale li invia ai server sfruttando l'algoritmo di bilanciamento del carico Weighted Round Robin. Questo algoritmo assegna le richieste in maniera sequenziale ai server ad esso collegati e che risultano attivi e non in sovraccarico nella sessione. Ogni server riceve i file dal loadbalancer e li salva nella directory rispettive. 
+Questo programma implementa un sistema di File Transfer Protocol (FTP) client-server intermediato da un server di load balacing utilizzando Python. Per fare ciò utilizza tre classi: Client, LoadBalancer e Server. Il client effettua delle richieste di invio file al load balancer, il quale li invia ai server sfruttando l'algoritmo di bilanciamento del carico Weighted Round Robin. Questo algoritmo assegna le richieste in maniera sequenziale ai server ad esso collegati e che risultano attivi e non in sovraccarico nella sessione. Ogni server riceve i file dal loadbalancer e li salva in una directory. 
 
 ## Descrizione dell'architettura
-L'architettura prevede l'utilizzo di un client, un load balancer e tre server FTP (File Transfer Protocol). Il `client` richiede in input un comando da eseguire; se viene digitato il comando "FTP", e viene successivamente inserito il numero di file, questi vengono scelti randomicamente tra i file contenuti nella cartella `file` e inviati al load balancer. Il `loadbalancer` riceve file JSON, li inserisce in una coda e li invia ai server che risultano essere disponibili alla ricezione; per verificare la disponibilità dei server, effettua costantemente un monitoraggio di connessione e di carico con i server ad esso collegati. Le richieste vengono assegnate utilizzando l'algoritmo di bilanciamento del carico Weighted Round Robin: il load balancer invia richieste ai server in maniera sequenziale. Quindi, i `server` attivi che non sono in sovraccarico, ricevono i file dal loadbalancer e li salvano all'interno delle rispettive directory `json_files_1`, `json_files_2` e `json_files_3`.
+L'architettura prevede l'utilizzo di un client, un load balancer e tre server FTP (File Transfer Protocol). Il `client` richiede in input un comando da eseguire; se viene digitato il comando "FTP", e viene successivamente inserito il numero di file, questi vengono scelti randomicamente tra i file contenuti nella cartella `file` e inviati al load balancer. Il `loadbalancer` riceve file JSON, li inserisce in una coda e li invia ai server che risultano essere disponibili alla ricezione; per verificare la disponibilità dei server, effettua costantemente un monitoraggio di connessione e di carico dei server ad esso collegati. Le richieste vengono assegnate utilizzando l'algoritmo di bilanciamento del carico Weighted Round Robin: il load balancer invia richieste ai server in maniera sequenziale. I `server` attivi che non sono in sovraccarico, ricevono i file dal loadbalancer e li salvano all'interno delle rispettive directory `json_files_1`, `json_files_2` e `json_files_3`.
 
-Il sistema permette quindi una gestione dinamica dei server: il load balancer controlla i server attivi e inattivi in ogni sessione, per inviare le richieste solo a quelli connessi e disponibili. Con la stessa logica, il sistema appare altamente tollerante ai guasti, in quanto la disconnessione improvvisa di un server non causa interruzioni nell'invio delle richieste a quelli funzionanti.  
+Il sistema permette quindi una gestione dinamica dei server: il load balancer controlla i server attivi e inattivi in ogni sessione, per inviare le richieste solo a quelli connessi e disponibili. 
+Con la stessa logica, il sistema appare altamente tollerante ai guasti, in quanto la disconnessione improvvisa di un server non causa interruzioni nell'invio delle richieste a quelli funzionanti.  
 
-Inoltre, il sistema monitora continuamente il carico della cpu del server utilizzando un thread separato. Se la memoria virtuale utilizzata dal processo supera il limite imposto, il server invia al loadbalancer un byte che rappresenta lo stato di sovraccarico; quindi il loadbalancer inoltra le richieste al server successivo nell' ordine circolare, come stabilito dall'algoritmo di bilanciamento del carico. 
+Inoltre, il sistema monitora continuamente il carico della cpu del server: se la memoria virtuale utilizzata dal processo supera il limite imposto, il server invia al loadbalancer un byte che rappresenta lo stato di sovraccarico; quindi il loadbalancer inoltra le richieste al server successivo nell' ordine circolare, come stabilito dall'algoritmo di bilanciamento del carico. 
 Per simulare una situazione di sovraccarico per i server, se il tipo di richiesta è "file_di_testo", il server estrae il titolo e il contenuto dal file JSON e conta il numero di lettere "A" nel contenuto.
 
 ## Funzionamento
-Abbiamo 5 file: `clientFTP.py`, `loadBalancerFTP.py`, `serverFTP1.py`, `serverFTP2.py' e `serverFTP3.py`. 
+Abbiamo 5 file: `clientFTP.py`, `loadBalancerFTP.py`, `serverFTP1.py`, `serverFTP2.py` e `serverFTP3.py`
 
 ### Client:
-Il file `clientFTP.py` contiene la classe `client`, che implementa i metodi per comunicare con l'utente, ricevere i comandi di input, e inviare i file al loadbalancer. 
+Il file `clientFTP.py` contiene la classe `Client`, che implementa i metodi per comunicare con l'utente, ricevere i comandi di input, e inviare i file al loadbalancer. 
  
 * **Costruttore del Client:**
-Il Client viene inizializzato con l'indirizzo IP e la porta del load balancer sui quali il client si connetterà. Tramite l'interfaccia è richiesto all'utente di specificare il percorso del file da inviare, che verrà quindi inserito nella lista  `file_da_inviare`. Inoltre il Client tiene traccia del numero di richieste effettuate dal client.
+all'interno del costruttore del Client vengono utilizzati parametri quali:
+  - Il socket del client: `client_socket`
+  - Indirizzo Ip e porta del loadbalancer sui quali il client si connetterà: `loadbalancer_ip` e `loadbalancer_port`
+  - Il filepath del file considerato: `filepath`
+  - La lista dei file da inviare: `file_da_inviare`
+  - Il contatore delle richieste effettuate: `counter_richieste`
 
 * **Avvio del Client:**
 La funzione **`avvio_client`**, è utilizzata per avviare il socket del client, che sarà utilizzato per stabilire una connessione con il load balancer, e i seguenti thread associati alle diverse operazioni:
-  1. **Interfaccia:** La funzione **`interfaccia_utente`** consente l'interazione dell'utente con il client. In questa parte di codice è stata impiegata la funzione `time.sleep(1)` per aggiungere un ritardo tra le iterazioni del ciclo, evitando un loop troppo veloce. Il metodo entra in un ciclo che permette all'utente di inserire comandi in modo continuo fino a quando non viene inserito il comando "exit" per chiudere la connessione.
+  1. **Interfaccia:** La funzione **`interfaccia_utente`** consente l'interazione dell'utente con il client. Il metodo entra in un ciclo che permette all'utente di inserire comandi in modo continuo fino a quando non viene inserito il comando "exit" per chiudere la connessione.
 
        Inizialmente vengono elencati i documenti presenti nella cartella "file" che possono essere selezionati per il trasferimento ai server.
 Se la cartella non contiene file, il codice genera un'eccezione con il messaggio di errore *"La cartella non ha file al suo interno."* e interrompe il programma.
@@ -35,7 +41,7 @@ Se l'utente inserisce il comando "FTP", tramite il messaggio *"Inserisci il nume
      - **Selezione dei file da inviare:** Il metodo **`scegli_file_da_inviare`** ha lo scopo di selezionare e creare una lista di file da inviare ai server FTP.
 Infatti, viene eseguito un ciclo for che itera per il numero di volte specificato da `numero_file` e, durante ogni iterazione, la funzione chiama il metodo **`scegli_file_random`** per selezionare casualmente un file dalla lista dei file disponibili nella cartella. In seguito, viene composto il percorso completo del file selezionato concatenando `"./file/"` con il nome del file. Questo percorso viene memorizzato nella variabile `filepath` che viene aggiunta alla lista `file_da_inviare` contenente i file da inviare ai server.
 
-  3. **Invio dei comandi al load balancer:** la funzione **`invia_file_al_loadbalancer`** è responsabile dell'invio di file JSON al load balancer. 
+  3. **Invio dei file al loadbalancer:** la funzione **`invia_file_al_loadbalancer`** è responsabile dell'invio di file JSON al load balancer. 
 Il metodo utilizza un ciclo while per inviare file al load balancer finché ci sono file nella lista `file_da_inviare`.
 All'interno del ciclo, il metodo controlla se la lista non è vuota. Se la lista contiene file da inviare, viene estratto dalla lista il percorso del primo file da inviare, che viene poi rimosso.
 Quindi, il metodo chiama la funzione **`invia_file_scelto`** che, apre il file JSON specificato da filepath, ne legge il contenuto, lo converte in un dizionario e gli aggiunge una chiave "request_type" assegnandogli il valore `file_di_testo` per identificare il tipo di richiesta, converte il dizionario aggiornato in una stringa JSON in modo da poterlo inviare tramite una socket e invia la stringa JSON codificata in byte attraverso la socket del client. 
@@ -43,15 +49,23 @@ Dopo l'invio del file, il metodo attende brevemente con time.sleep(0.3) per evit
 Infine, la funzione stampa un messaggio indicando che il file JSON è stato inoltrato con successo al load balancer e incrementa il contatore delle richieste `counter_richieste`.
 Se si verifica un errore di comunicazione durante l'invio, viene catturata un'eccezione di tipo socket.error e viene stampato un messaggio di errore e programma viene quindi terminato.
 
-* **Ricezione delle risposte dei server dal loadbalancer:**
-La funzione `ricevi_dati_dal_loadbalancer` entra in un ciclo while infinito che mantiene la socket del client in ascolto per ricevere messaggi dal load balancer come sequenze di byte. Tale sequenza viene decodificata convertendo così i dati in una stringa leggibile. Inoltre, viene decrementato il contatore delle richieste `counter_richieste` di uno per tenere traccia del fatto che è stata ricevuta una risposta. Infine, la stringa leggibile vine stampata.
-Il ciclo while continua ad ascoltare per ulteriori messaggi dal load balancer finché non si verifica un errore di socket o finché il programma non viene interrotto.
 
 ### Loadbalancer:
 Il file `LoadbalancerFTP.py` contiene una classe denominata `LoadBalancer`, che implementa un load balancer in ascolto per connessioni in arrivo dai client.
 
-* **Inizializzazione del Load Balancer:**
-  Nell'inizializzazione, vengono configurati parametri come la porta `self.port`, l'indirizzo IP `self.ip`, le liste dei server disponibili, le code delle richieste e i thread di monitoraggio. Il log delle attività viene registrato in un file chiamato "loadbalancer.log".
+* **Costruttore del Load Balancer:**
+  all'interno del costruttore vengono configurati parametri quali:
+  - Il socket del loadbalancer: `balancer_socket`
+  - la porta e l'indirizzo IP del loadbalancer: `self.port` e `self.ip`
+  - la lista dei nomi dei file ricevuti: `nomi_file_ricevuti`
+  - le liste degli IP e delle porte dei server disponibili: `servers` e `port_server`
+  - l'indice del server corrente: `current_server_index`
+  - le code delle richieste: `request_queue`
+  - le flag di connessione e sovraccarico dei server (impostate inizialmente a False): `server_flags_connection` e `server_sovraccarichi` 
+  - il numero della richiesta elaborata: `numero_della_richiesta`
+  - il file di log, che registra le attività del loadbalancer: `log_file`
+  
+   All'interno del costruttore viene inoltre avviato il thread `monitoraggio_stato_server`, che controlla costantemente lo stato dell'attività e del carico dei server.
 
 * **Avvio del Load Balancer:**
 Il metodo **`avvio_loadbalancer`** è responsabile dell'avvio del load balancer. La sua funzione principale è quella di inizializzare e configurare il load balancer, creando la socket e connettendo il load balancer ai client. Vengono così chiamati i seguenti metodi:

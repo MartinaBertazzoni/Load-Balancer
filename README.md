@@ -3,7 +3,7 @@
 </p>
 
 <div align="center">
-  <h1>Sistema di Bilanciamento del Carico per Server di Calcolo</h1>
+  <h1>Sistema di Bilanciamento del Carico per Server</h1>
 </div>
      
 ***

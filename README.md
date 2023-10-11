@@ -14,6 +14,7 @@ Con la stessa logica, il sistema appare altamente tollerante ai guasti, in quant
 Inoltre, il sistema monitora continuamente il carico della cpu del server: se la memoria virtuale utilizzata dal processo supera il limite imposto, il server invia al loadbalancer un byte che rappresenta lo stato di sovraccarico; quindi il loadbalancer inoltra le richieste al server successivo nell' ordine circolare, come stabilito dall'algoritmo di bilanciamento del carico. 
 Per simulare una situazione di sovraccarico per i server, se il tipo di richiesta è "file_di_testo", il server estrae il titolo e il contenuto dal file JSON e conta il numero di lettere "A" nel contenuto.
 
+![Schema Architettura](Schema_Architettura.png)
 ## Funzionamento
 Abbiamo 5 file: `clientFTP.py`, `loadBalancerFTP.py`, `serverFTP1.py`, `serverFTP2.py` e `serverFTP3.py`
 

@@ -1,4 +1,11 @@
-# Sistema di Bilanciamento del Carico per Server di Calcolo
+<p align="center">
+  <img src="Logo.png" alt="Logo" width="100" height="100">
+</p>
+
+<div align="center">
+  <h1>Sistema di Bilanciamento del Carico per Server di Calcolo</h1>
+</div>
+     
 ***
 Questo repository contiene un'implementazione in Python di un sistema client-server intermediato da un sistema di load balacing. Il load balancer sfrutta l'algoritmo di bilanciamento del carico Weighted Round Robin, che assegna in maniera sequenziale le richieste ai server ad esso collegati che risultano attivi e non in sovraccarico.
 

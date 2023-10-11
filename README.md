@@ -190,12 +190,6 @@ Dopo questo calcolo iniziale, che viene eseguito solo la prima volta all'avvio d
 Questo calcolo fornisce una stima dell'utilizzo della memoria virtuale da parte del processo corrente.
 Se la percentuale di utilizzo della memoria virtuale supera il limite impostato nella variabile `LIMITE_CPU_percentuale`, la variabile `flag_sovraccarico` viene impostata su True, indicando che il server è sovraccarico. Altrimenti, se il limite non viene superato, viene impostato su False.
 
-## Interrogazione e Redirezione dei Client
-
-## Bilanciamento del carico
-
-## Gestione Dinamica dei Server
-
 ## Elaborazione delle Richieste in modo Ordinato e Sincronizzato
 In questo codice è stato implementato un sistema di gestione delle richieste in modo sincronizzato e ordinato, utilizzando la coda `request_queue`.
 Nel metodo **`ricevo_file_dal_client`** vengono inserite nella coda le richieste in ingresso e , nel metodo **`process_request_queue`** il server gestisce le richieste presenti nella coda in modo sequenziale.
@@ -229,12 +223,6 @@ Il load balancer invia richieste ai server per verificare il loro stato di sovra
 
 ## Future Implementazioni
 
-### Misure di sicurezza:
-In futuro, è previsto di implementare ulteriori misure di sicurezza, tra cui:
-
-1) **Registrazione e doppia autenticazione per i client:** I client dovranno registrarsi al sistema fornendo un username, una password e un token di autenticazione. Il token di autenticazione sarà generato dal load balancer e dovrà essere utilizzato dal client per accedere al sistema.
-2) **Sistema a doppia crittografia:** Le comunicazioni tra il client e il load balancer saranno criptate utilizzando il protocollo TLS. Le comunicazioni tra il load balancer e i server saranno criptate utilizzando un protocollo di crittografia più forte, come il protocollo AES.
-
 ### Modificare il numero di thread:
 Per garantire un funzionamento efficiente del sistema in scenari con un numero crescente di client, è fondamentale configurare un numero adeguato di thread per gestire le diverse attività. Quando il sistema è soggetto a un carico elevato, si consiglia di allocare sei thread distinti, ciascuno dedicato a specifiche responsabilità:
 
@@ -254,23 +242,36 @@ Per garantire un funzionamento efficiente del sistema in scenari con un numero c
 
 Configurando correttamente questi sei thread, il sistema sarà in grado di gestire simultaneamente numerose richieste dai client in modo efficiente e scalabile, garantendo prestazioni ottimali anche in situazioni di carico elevato. 
 
-### Gestione Dinamica dei Thread:
+### Gestione dei Thread:
 Uno dei punti chiave per il miglioramento del nostro sistema client-server con load balancer è la gestione dinamica dei thread. Attualmente, il sistema utilizza thread, ma manca un meccanismo per la chiusura e la gestione dei thread in modo dinamico.
 
 Prevediamo, quindi, di implementare in futuro quanto segue:
 
-- Chiusura Sicura dei Thread: Attualmente, i thread vengono creati al momento dell'avvio del sistema e non vengono chiusi in modo esplicito. In futuro, pianifichiamo di implementare una gestione sicura della chiusura dei thread quando non sono più necessari.
+- **Chiusura Sicura dei Thread:** Attualmente, i thread vengono creati al momento dell'avvio del sistema e non vengono chiusi in modo esplicito. In futuro, pianifichiamo di implementare una gestione sicura della chiusura dei thread quando non sono più necessari.
 
-- Gestione Dinamica dei Thread: Prevediamo di implementare un sistema di gestione dei thread che permetta l'apertura e la chiusura dinamica in risposta alla domanda effettiva. Questo garantirà un utilizzo efficiente delle risorse di sistema e consentirà al sistema di adattarsi alle variazioni del carico di lavoro in tempo reale.
+- **Gestione Dinamica dei Thread:** Prevediamo di implementare un sistema di gestione dei thread che permetta l'apertura e la chiusura dinamica in risposta alla domanda effettiva. Questo garantirà un utilizzo efficiente delle risorse di sistema e consentirà al sistema di adattarsi alle variazioni del carico di lavoro in tempo reale.
 
 Questi future implementazioni renderanno il nostro sistema più robusto, efficiente e adattabile alle esigenze dinamiche dei client e dei server.
 
+### Misure di sicurezza:
+In futuro, è previsto di implementare ulteriori misure di sicurezza, tra cui:
 
-### Sistema di tracciamento delle richieste: Memorizzazione delle Richieste e Accesso da Parte del Server
+- **Registrazione e doppia autenticazione per i client:** I client dovranno registrarsi al sistema fornendo un username, una password e un token di autenticazione. Il token di autenticazione sarà generato dal load balancer e dovrà essere utilizzato dal client per accedere al sistema.
+-  **Sistema a doppia crittografia:** Le comunicazioni tra il client e il load balancer saranno criptate utilizzando il protocollo TLS. Le comunicazioni tra il load balancer e i server saranno criptate utilizzando un protocollo di crittografia più forte, come il protocollo AES.
 
-In un sistema distribuito in cui il LoadBalancer svolge un ruolo critico nell'indirizzare le richieste dei client ai server appropriati, è importante disporre di meccanismi adeguati per tenere traccia delle richieste effettuate e dei loro dettagli. Questo consente una gestione più efficace delle operazioni, nonché una risoluzione più efficiente dei problemi o degli errori che potrebbero verificarsi.
+### Ulteriore Gestione degli Errori
+Nel nostro sistema client-server con load balancer, abbiamo implementato una coda e un sistema di identificazione univoca delle richieste. Questa combinazione ci permette di gestire eventuali errori, come il server che non riesce a elaborare alcune richieste, in modo robusto e affidabile.
 
 Per implementare questa funzionalità, devono essere effettuate le seguenti modifiche al codice:
++ Quando il server non può elaborare una richiesta, quest'ultima viene inserita nella coda delle richieste `request_queue`, mantenendo l'identificazione univoca `numero_richiesta` per ogni richiesta.
++ Quando il server riprende il suo normale funzionamento, può interrogare il load balancer per verificare se ci sono richieste non elaborate nella coda.
++ Quindi, il server recupera le richieste non elaborate con un numero di richiesta specifico per eseguirle.
+
+Questo approccio contribuirebbe a garantire che il sistema sia in grado di gestire situazioni di errore o interruzioni assicurando l'esecuzione di tutte le richieste dei client.
+Ecco come ciò supporterebbe la gestione degli errori:
+1. **Conservazione dei dati:** Le richieste che non possono essere elaborate a causa di errori temporanei o interruzioni vengono conservate nella coda invece di essere perse.
+2. **Recupero post-errori:** Quando il server è in grado di operare nuovamente dopo un errore o un'interruzione, può recuperare le richieste dalla coda, identificate in modo univoco, e procedere con l'elaborazione. Questo costituisce una forma di recupero post-errori.
+3. **Audit e Analisi:** Conservando tutte le richieste non elaborate nel tempo, è possibile condurre un audit delle richieste e analizzare perché alcune di esse sono state ritardate o non elaborate. Questo è utile per identificare le cause principali degli errori o dei ritardi e apportare miglioramenti al sistema.
 
 # Contributi
 Sono benvenuti contributi a questo progetto. Se si riscontrano problemi o si hanno suggerimenti per miglioramenti, è possibile aprire una segnalazione o inviare una richiesta di modifica.

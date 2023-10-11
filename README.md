@@ -21,9 +21,10 @@ Abbiamo 5 file: `clientFTP.py`, `loadBalancerFTP.py`, `serverFTP1.py`, `serverFT
 Il file `clientFTP.py` contiene la classe `Client`, che implementa i metodi per comunicare con l'utente, ricevere i comandi di input, e inviare i file al loadbalancer. 
  
 * **Costruttore del Client:**
-all'interno del costruttore del Client vengono utilizzati parametri quali:
+  
+  All'interno del costruttore del Client vengono utilizzati parametri quali:
   - Il socket del client: `client_socket`
-  - Indirizzo Ip e porta del loadbalancer sui quali il client si connetterà: `loadbalancer_ip` e `loadbalancer_port`
+  - L'indirizzo Ip e la porta del loadbalancer sui quali il client si connetterà: `loadbalancer_ip` e `loadbalancer_port`
   - Il filepath del file considerato: `filepath`
   - La lista dei file da inviare: `file_da_inviare`
   - Il contatore delle richieste effettuate: `counter_richieste`
@@ -54,16 +55,17 @@ Se si verifica un errore di comunicazione durante l'invio, viene catturata un'ec
 Il file `LoadbalancerFTP.py` contiene una classe denominata `LoadBalancer`, che implementa un load balancer in ascolto per connessioni in arrivo dai client.
 
 * **Costruttore del Load Balancer:**
-  all'interno del costruttore vengono configurati parametri quali:
+
+  All'interno del costruttore del Load Balancer vengono utilizzati parametri quali:
   - Il socket del loadbalancer: `balancer_socket`
-  - la porta e l'indirizzo IP del loadbalancer: `self.port` e `self.ip`
-  - la lista dei nomi dei file ricevuti: `nomi_file_ricevuti`
-  - le liste degli IP e delle porte dei server disponibili: `servers` e `port_server`
-  - l'indice del server corrente: `current_server_index`
-  - le code delle richieste: `request_queue`
-  - le flag di connessione e sovraccarico dei server (impostate inizialmente a False): `server_flags_connection` e `server_sovraccarichi` 
-  - il numero della richiesta elaborata: `numero_della_richiesta`
-  - il file di log, che registra le attività del loadbalancer: `log_file`
+  - La porta e l'indirizzo IP del loadbalancer: `self.port` e `self.ip`
+  - La lista dei nomi dei file ricevuti: `nomi_file_ricevuti`
+  - Le liste degli IP e delle porte dei server disponibili: `servers` e `port_server`
+  - L'indice del server corrente: `current_server_index`
+  - Le code delle richieste: `request_queue`
+  - Le flag di connessione e sovraccarico dei server (impostate inizialmente a False): `server_flags_connection` e `server_sovraccarichi` 
+  - Il numero della richiesta elaborata: `numero_della_richiesta`
+  - Il file di log, che registra le attività del loadbalancer: `log_file`
   
    All'interno del costruttore viene inoltre avviato il thread `monitoraggio_stato_server`, che controlla costantemente lo stato dell'attività e del carico dei server.
 
@@ -124,13 +126,14 @@ Alla fine del ciclo, l'indice viene nuovamente incrementato in modo che il pross
 I file `ServerFTP.py`, `ServerFTP2.py` e `ServerFTP3.py`  rappresentano le implementazioni di tre server FTP  di base che gestiscono il ricevimento e il salvataggio di file di testo inviati da un load balancer. I server sono progettati per monitorare continuamente il loro stato di carico della CPU e agire di conseguenza in situazioni di sovraccarico.
 
 * **Inizializzazione dei Server:**
-all'interno del costruttore della classe `Server` vengono definiti parametri quali:
-  - il socket del server: `server_socket`
-  - indirizzo IP e porta del server: `ip`, `port`
-  - la lista delle socket connesse, quindi delle richieste effettuate: `active_requests`
-  - la flag di sovraccarico, inizializzata a False: `flag_sovraccarico`
-  - il nome della directory in cui salvare i file ricevuti: `directory_name`
-  - il valore del limite della CPU utilizzabile, oltre il quale il server è considerato in sovraccarico: `LIMITE_CPU_percentuale`
+
+  All'interno del costruttore del Server vengono utilizzati parametri quali:
+  - Il socket del server: `server_socket`
+  - L'indirizzo IP e la porta del server: `ip`, `port`
+  - La lista delle socket connesse, quindi delle richieste effettuate: `active_requests`
+  - La flag di sovraccarico, inizializzata a False: `flag_sovraccarico`
+  - Il nome della directory in cui salvare i file ricevuti: `directory_name`
+  - Il valore del limite della CPU utilizzabile, oltre il quale il server è considerato in sovraccarico: `LIMITE_CPU_percentuale`
   
   Infine, all'interno del costruttore viene avviato il thread `monitoraggio_carico_server` per monitorare continuamente il carico della CPU del server 
  

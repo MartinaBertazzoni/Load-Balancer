@@ -284,5 +284,12 @@ Ecco come ciò supporterebbe la gestione degli errori:
 2. **Recupero post-errori:** Quando il server è in grado di operare nuovamente dopo un errore o un'interruzione, può recuperare le richieste dalla coda, identificate in modo univoco, e procedere con l'elaborazione. Questo costituisce una forma di recupero post-errori.
 3. **Audit e Analisi:** Conservando tutte le richieste non elaborate nel tempo, è possibile condurre un audit delle richieste e analizzare perché alcune di esse sono state ritardate o non elaborate. Questo è utile per identificare le cause principali degli errori o dei ritardi e apportare miglioramenti al sistema.
 
+### Load Balancer di Backup
+Il sistema client-server in questione attualmente non dispone di un server load balancer di backup. Tuttavia, per garantire la massima affidabilità e disponibilità del servizio, è previsto lo sviluppo e l'implementazione di un load balancer di backup. Questo meccanismo ha lo scopo di garantire che il servizio rimanga accessibile anche in caso di guasti o interruzioni del load balancer principale.
+
+Il client monitora costantemente la connessione con il load balancer principale. Se tale connessione viene persa per un periodo prestabilito, il load balancer di backup entra in funzione e assume la gestione del traffico in entrata.
+
+Per garantire che il load balancer di backup sia sempre aggiornato, è previsto che il load balancer principale invii periodicamente il contenuto delle sue memorie al load balancer di backup. Questo assicura che il load balancer di backup sia allineato con il load balancer principale e pronto a gestire il traffico in modo efficiente una volta attivato.
+
 # Contributi
 Sono benvenuti contributi a questo progetto. Se si riscontrano problemi o si hanno suggerimenti per miglioramenti, è possibile aprire una segnalazione o inviare una richiesta di modifica.

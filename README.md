@@ -223,7 +223,7 @@ Quindi, quando una richiesta viene inserita nella coda delle richieste `request_
    Nel load balancer, viene utilizzato il modulo di logging di Python per registrare diverse attività.
 Ad esempio, viene registrato un messaggio nel file di log `loadbalancer.log` ogni volta che il load balancer riceve una richiesta da un client e inoltra tale richiesta a uno dei server. 
 
-   ![File di Log](file_log.png)
+   ![File di Log](file_log.jpg)
    
 3) **Messaggi di Notifica:**
 

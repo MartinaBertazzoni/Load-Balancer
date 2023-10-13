@@ -1,3 +1,1 @@
-install pynput
-pynput~=1.7.6
 psutil~=5.9.5

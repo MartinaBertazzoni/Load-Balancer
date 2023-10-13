@@ -21,7 +21,7 @@ Con la stessa logica, il sistema appare altamente tollerante ai guasti, in quant
 Inoltre, il sistema monitora continuamente il carico della cpu del server: se la memoria virtuale utilizzata dal processo supera il limite imposto, il server invia al loadbalancer un byte che rappresenta lo stato di sovraccarico; quindi il loadbalancer inoltra le richieste al server successivo nell' ordine circolare, come stabilito dall'algoritmo di bilanciamento del carico. 
 Per simulare una situazione di sovraccarico per i server, se il tipo di richiesta è "file_di_testo", il server estrae il titolo e il contenuto dal file JSON e conta il numero di lettere "A" nel contenuto.
 
-![Schema Architettura](Schema_Architettura.png)
+![Schema Architettura](images/Schema_Architettura.png)
 ## Funzionamento
 Abbiamo 5 file: `clientFTP.py`, `loadBalancerFTP.py`, `serverFTP1.py`, `serverFTP2.py` e `serverFTP3.py`
 
@@ -47,7 +47,7 @@ Se la cartella contiene file, l'utente viene invitato a inserire un comando tram
  Se l'utente inserisce il comando "exit", il client mostra il messaggio di chiusura della connessione *"Chiusura della connessione con il server..."* e termina il programma.
 Se l'utente inserisce il comando "FTP", tramite il messaggio *"Inserisci il numero di file da trasferire: "*, viene richiesto di inserire il numero di file da trasferire `numero_file`. I file vengono selezionati casualmente fra quelli presenti nella cartella. Se viene generata un'eccezione durante l'input del numero di file o se l'utente inserisce un comando diverso da "exit" o "FTP," viene visualizzato il messaggio di errore e l'utente viene invitato a riprovare.
 
-       ![Interfaccia](Interfaccia.jpg)
+       ![Interfaccia](images/Interfaccia.jpg)
 
      - **Selezione dei file da inviare:** Il metodo **`scegli_file_da_inviare`** ha lo scopo di selezionare e creare una lista di file da inviare ai server FTP.
 Infatti, viene eseguito un ciclo for che itera per il numero di volte specificato da `numero_file` e, durante ogni iterazione, la funzione chiama il metodo **`scegli_file_random`** per selezionare casualmente un file dalla lista dei file disponibili nella cartella. In seguito, viene composto il percorso completo del file selezionato concatenando `"./file/"` con il nome del file. Questo percorso viene memorizzato nella variabile `filepath` che viene aggiunta alla lista `file_da_inviare` contenente i file da inviare ai server.
@@ -223,7 +223,7 @@ Quindi, quando una richiesta viene inserita nella coda delle richieste `request_
    Nel load balancer, viene utilizzato il modulo di logging di Python per registrare diverse attività.
 Ad esempio, viene registrato un messaggio nel file di log `loadbalancer.log` ogni volta che il load balancer riceve una richiesta da un client e inoltra tale richiesta a uno dei server. 
 
-   ![File di Log](file_log.jpg)
+   ![File di Log](images/file_log.jpg)
    
 3) **Messaggi di Notifica:**
 

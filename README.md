@@ -221,8 +221,10 @@ Quindi, quando una richiesta viene inserita nella coda delle richieste `request_
 1) **Logging nel Load Balancer:**
 
    Nel load balancer, viene utilizzato il modulo di logging di Python per registrare diverse attività.
-Viene registrato un messaggio nel file di log `loadbalancer.log` ogni volta che il load balancer riceve una richiesta da un client e inoltra tale richiesta a uno dei server. Questo avviene nel metodo **`invia_ai_server`** del load balancer.
+Ad esempio, viene registrato un messaggio nel file di log `loadbalancer.log` ogni volta che il load balancer riceve una richiesta da un client e inoltra tale richiesta a uno dei server. 
 
+   ![File di Log](file_log.png)
+   
 3) **Messaggi di Notifica:**
 
     - Quando il client invia un file al load balancer, viene stampato un messaggio di notifica sullo stato del trasferimento nel loadbalancer.
